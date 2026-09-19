@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {MeshoptDecoder} from './assets/meshopt_decoder.module.js';
 
 const box=document.querySelector('#viewer'),load=document.querySelector('#load');
 const stage=document.querySelector('.site'),sky=document.querySelector('#stars'),skyContext=sky.getContext('2d');
@@ -101,10 +102,11 @@ function renderStars(time,reveal){
  if(s.spark){skyContext.strokeStyle=`rgba(222,207,255,${alpha*.7})`;skyContext.lineWidth=.65;skyContext.beginPath();skyContext.moveTo(x-4,y);skyContext.lineTo(x+4,y);skyContext.moveTo(x,y-5);skyContext.lineTo(x,y+5);skyContext.stroke();}
  }
 }
-new GLTFLoader().load('./assets/rose-orb.glb',gltf=>{
+const manager=new THREE.LoadingManager();manager.onProgress=(_url,loaded,total)=>{document.querySelector('#bar').style.width=Math.min(99,Math.round(loaded/total*100))+'%';};
+new GLTFLoader(manager).setMeshoptDecoder(MeshoptDecoder).load('./assets/original/model.gltf',gltf=>{
  model=gltf.scene;scene.add(model);bounds=new THREE.Box3().setFromObject(model);bounds.getCenter(center);unit=bounds.max.y-bounds.min.y;
  frame();setupEffect();load.style.display='none';document.querySelector('#rotate').disabled=false;document.querySelector('#reset').disabled=false;
-},event=>{if(event.total){const pct=Math.min(99,Math.round(event.loaded/event.total*100));document.querySelector('#bar').style.width=pct+'%';document.querySelector('#loadText').textContent='正在载入模型 '+pct+'%';}},e=>{console.error(e);document.querySelector('#loadText').textContent='载入失败';document.querySelector('#error').style.display='block';document.querySelector('#bar').style.display='none';});
+},undefined,e=>{console.error(e);document.querySelector('#loadText').textContent='载入失败';document.querySelector('#error').style.display='block';document.querySelector('#bar').style.display='none';});
 document.querySelector('#rotate').onclick=e=>{controls.autoRotate=!controls.autoRotate;controls.autoRotateSpeed=1.1;e.currentTarget.setAttribute('aria-pressed',String(controls.autoRotate));};
 document.querySelector('#reset').onclick=()=>{if(initialCamera){camera.position.copy(initialCamera);controls.target.copy(initialTarget);controls.update();}};
 document.querySelector('#replay').onclick=replay;
