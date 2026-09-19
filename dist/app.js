@@ -62,10 +62,11 @@ const glowCanvas=document.createElement('canvas');glowCanvas.width=glowCanvas.he
 const gctx=glowCanvas.getContext('2d'),gradient=gctx.createRadialGradient(64,64,0,64,64,64);
 gradient.addColorStop(0,'rgba(255,237,204,0.9)');gradient.addColorStop(.13,'rgba(255,157,95,0.5)');gradient.addColorStop(.38,'rgba(249,107,137,0.14)');gradient.addColorStop(1,'rgba(255,84,131,0)');gctx.fillStyle=gradient;gctx.fillRect(0,0,128,128);
 const glowTexture=new THREE.CanvasTexture(glowCanvas);glowTexture.colorSpace=THREE.SRGBColorSpace;
-function makeFire(height){
+function makeFire(height,overlay=false){
  const group=new THREE.Group();const mat=new THREE.ShaderMaterial({vertexShader:fireVertex,fragmentShader:fireFragment,uniforms:{time:{value:0},alpha:{value:1}},transparent:true,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,toneMapped:false});
  const geometry=new THREE.PlaneGeometry(height*.62,height);geometry.translate(0,height*.47,0);const flame=new THREE.Mesh(geometry,mat);group.add(flame);
  const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTexture,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));halo.position.y=height*.36;halo.scale.setScalar(height*3.7);group.add(halo);
+ if(overlay){flame.material.depthTest=false;halo.material.depthTest=false;flame.renderOrder=102;halo.renderOrder=101;}
  group.userData={flame,halo};scene.add(group);return group;
 }
 function updateFire(fire,time,opacity){fire.visible=opacity>.001;fire.userData.flame.quaternion.copy(camera.quaternion);fire.userData.flame.material.uniforms.time.value=time;fire.userData.flame.material.uniforms.alpha.value=opacity;fire.userData.halo.material.opacity=opacity*(.75+.1*Math.sin(time*7.1));}
@@ -77,7 +78,8 @@ function setupEffect(){
  match=new THREE.Group();scene.add(match);
  const stick=new THREE.Mesh(new THREE.CylinderGeometry(unit*.004,unit*.0035,unit*.17,8),new THREE.MeshStandardMaterial({color:0xc89479,roughness:.7,emissive:0x6b251c,emissiveIntensity:.25}));stick.position.y=-unit*.083;match.add(stick);
  const head=new THREE.Mesh(new THREE.SphereGeometry(unit*.006,12,8),new THREE.MeshBasicMaterial({color:0xffbb70}));match.add(head);
- matchFire=makeFire(unit*.065);candleFire=makeFire(unit*.067);candleFire.position.copy(tip);
+ match.traverse(o=>{if(o.isMesh){o.material.depthTest=false;o.material.depthWrite=false;o.renderOrder=100;}});
+ matchFire=makeFire(unit*.065,true);candleFire=makeFire(unit*.067);candleFire.position.copy(tip);
  matchLight=new THREE.PointLight(0xffa968,0,unit*2.1,2);candleLight=new THREE.PointLight(0xffb97e,0,unit*2.4,2);candleLight.position.copy(tip);scene.add(matchLight,candleLight);
  replay();
 }
@@ -113,11 +115,15 @@ function animate(now){
  const targetScreen=tip.clone().project(camera),tx=(targetScreen.x*.5+.5)*box.clientWidth,ty=(.5-targetScreen.y*.5)*box.clientHeight;
  targetHint.style.left=tx+'px';targetHint.style.top=ty+'px';
  if(ignitionAt===null){
-   if(pointer.active){
-     pointerNdc.set(pointer.x/box.clientWidth*2-1,1-pointer.y/box.clientHeight*2);
-     camera.getWorldDirection(viewDirection);pointerPlane.setFromNormalAndCoplanarPoint(viewDirection,tip);
-     raycaster.setFromCamera(pointerNdc,camera);raycaster.ray.intersectPlane(pointerPlane,match.position);
-   }else{match.position.set(center.x-unit*.34,center.y+unit*.2,center.z+unit*.4);}
+   // Keep the cursor's match and light outside the mesh, even when hovering over its front.
+   camera.getWorldDirection(viewDirection);
+   const size=bounds.getSize(new THREE.Vector3());
+   const extent=(Math.abs(viewDirection.x)*size.x+Math.abs(viewDirection.y)*size.y+Math.abs(viewDirection.z)*size.z)*.5;
+   const front=center.clone().addScaledVector(viewDirection,-extent-unit*.08);
+   pointerPlane.setFromNormalAndCoplanarPoint(viewDirection,front);
+   if(pointer.active){pointerNdc.set(pointer.x/box.clientWidth*2-1,1-pointer.y/box.clientHeight*2);}
+   else{const parked=new THREE.Vector3(center.x-unit*.34,center.y+unit*.2,center.z+unit*.4).project(camera);pointerNdc.set(parked.x,parked.y);}
+   raycaster.setFromCamera(pointerNdc,camera);raycaster.ray.intersectPlane(pointerPlane,match.position);
    const radius=pointer.touch?32:22;
    const near=pointer.active&&(!pointer.down||pointer.touch)&&Math.hypot(pointer.x-tx,pointer.y-ty)<radius;
    if(near){hoverSince??=now;if(now-hoverSince>=420)ignite(now);}else hoverSince=null;
