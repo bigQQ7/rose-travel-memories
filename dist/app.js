@@ -16,7 +16,16 @@ const ambient=new THREE.HemisphereLight(0xe6d6ff,0x522e58,.03);scene.add(ambient
 function light(color,x,y,z){const l=new THREE.DirectionalLight(color,0);l.position.set(x,y,z);scene.add(l);return l;}
 const key=light(0xffdedc,4,6,7),fill=light(0x7974ff,-5,2,3),rim=light(0xee8fca,2,4,-5);
 let model,bounds,unit=1,center=new THREE.Vector3(),tip=new THREE.Vector3(),initialCamera,initialTarget;
-let started=0,match,matchFire,candleFire,matchLight,candleLight;
+let match,matchFire,candleFire,matchLight,candleLight,ignitionAt=null,hoverSince=null;
+const pointer={x:0,y:0,active:false,down:false,touch:false};
+const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2(),pointerPlane=new THREE.Plane(),viewDirection=new THREE.Vector3();
+const targetHint=document.querySelector('#igniteTarget'),instruction=document.querySelector('#instruction');
+function trackPointer(e){const rect=renderer.domElement.getBoundingClientRect();pointer.x=e.clientX-rect.left;pointer.y=e.clientY-rect.top;pointer.active=true;pointer.touch=e.pointerType==='touch';}
+renderer.domElement.addEventListener('pointermove',trackPointer);
+renderer.domElement.addEventListener('pointerdown',e=>{trackPointer(e);pointer.down=true;hoverSince=null;});
+window.addEventListener('pointerup',()=>{pointer.down=false;if(pointer.touch){pointer.active=false;hoverSince=null;}});
+renderer.domElement.addEventListener('pointerleave',()=>{pointer.active=false;hoverSince=null;});
+renderer.domElement.addEventListener('pointercancel',()=>{pointer.active=false;pointer.down=false;hoverSince=null;});
 const clamp=THREE.MathUtils.clamp,smooth=(a,b,x)=>{let t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
 let seed=9127;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
 const stars=Array.from({length:78},(_,i)=>({x:random(),y:random()*.9,r:.45+random()*1.1,phase:random()*6.28,spark:i%12===0}));
@@ -72,7 +81,17 @@ function setupEffect(){
  matchLight=new THREE.PointLight(0xffa968,0,unit*2.1,2);candleLight=new THREE.PointLight(0xffb97e,0,unit*2.4,2);candleLight.position.copy(tip);scene.add(matchLight,candleLight);
  replay();
 }
-function replay(){if(!model)return;started=performance.now()-(reducedMotion?10000:0);document.querySelector('#replay').disabled=true;box.dataset.phase='igniting';}
+function replay(){
+ if(!model)return;ignitionAt=null;hoverSince=null;pointer.active=false;
+ controls.autoRotate=false;document.querySelector('#rotate').setAttribute('aria-pressed','false');
+ controls.touches.ONE=THREE.TOUCH.PAN;
+ document.querySelector('#replay').disabled=true;box.dataset.phase='awaiting';
+ instruction.textContent=matchMedia('(pointer: coarse)').matches?'拖动火柴到顶部，停留片刻点亮':'移动鼠标，将火柴靠近顶部点亮';
+}
+function ignite(now){
+ ignitionAt=now-(reducedMotion?3000:0);hoverSince=null;box.dataset.phase='igniting';
+ controls.touches.ONE=THREE.TOUCH.ROTATE;instruction.textContent='正在点亮…';
+}
 function renderStars(time,reveal){
  const w=box.clientWidth,h=box.clientHeight;skyContext.clearRect(0,0,w,h);if(reveal<=0)return;
  for(const s of stars){if(s.x<.25&&s.y<.26)continue;const x=s.x*w,y=s.y*h,alpha=reveal*(.25+.65*(.5+.5*Math.sin(time*.8+s.phase)));
@@ -90,17 +109,31 @@ document.querySelector('#replay').onclick=replay;
 function animate(now){
  requestAnimationFrame(animate);controls.update();
  if(model&&candleFire){
- const t=(now-started)/1000,ft=reducedMotion?2:t,reveal=smooth(6.45,9,t),ignition=smooth(6.12,6.55,t);
+ const ft=reducedMotion?2:now/1000;
+ const targetScreen=tip.clone().project(camera),tx=(targetScreen.x*.5+.5)*box.clientWidth,ty=(.5-targetScreen.y*.5)*box.clientHeight;
+ targetHint.style.left=tx+'px';targetHint.style.top=ty+'px';
+ if(ignitionAt===null){
+   if(pointer.active){
+     pointerNdc.set(pointer.x/box.clientWidth*2-1,1-pointer.y/box.clientHeight*2);
+     camera.getWorldDirection(viewDirection);pointerPlane.setFromNormalAndCoplanarPoint(viewDirection,tip);
+     raycaster.setFromCamera(pointerNdc,camera);raycaster.ray.intersectPlane(pointerPlane,match.position);
+   }else{match.position.set(center.x-unit*.34,center.y+unit*.2,center.z+unit*.4);}
+   const radius=pointer.touch?32:22;
+   const near=pointer.active&&(!pointer.down||pointer.touch)&&Math.hypot(pointer.x-tx,pointer.y-ty)<radius;
+   if(near){hoverSince??=now;if(now-hoverSince>=420)ignite(now);}else hoverSince=null;
+   targetHint.style.setProperty('--hold',hoverSince===null?0:Math.min(1,(now-hoverSince)/420));
+ }
+ const age=ignitionAt===null?-1:(now-ignitionAt)/1000,reveal=smooth(.25,2.8,age),ignition=smooth(0,.35,age);
  stage.style.setProperty('--reveal',reveal.toFixed(4));
- ambient.intensity=.055+reveal*.83;key.intensity=.035+reveal*.76;fill.intensity=.05+reveal*1.05;rim.intensity=.015+reveal*1.2;
- const travel=Math.min(t,4.8),a=-.8+travel*1.65;
- const orbit=new THREE.Vector3(center.x+Math.sin(a)*unit*.56,center.y+unit*(.13+.06*Math.sin(travel*1.3)),center.z+Math.cos(a)*unit*.56);
- const settle=smooth(4.8,6.3,t);match.position.copy(orbit).lerp(tip,settle);match.position.y+=Math.sin(settle*Math.PI)*unit*.15;
- match.rotation.z=-.28+.35*Math.sin(travel*1.8);const matchOpacity=smooth(0,.35,t)*(1-smooth(6.4,7.1,t));match.visible=matchOpacity>.01;match.scale.setScalar(Math.max(.001,matchOpacity));
+ ambient.intensity=.075+reveal*.81;key.intensity=.045+reveal*.75;fill.intensity=.05+reveal*1.05;rim.intensity=.015+reveal*1.2;
+ if(ignitionAt!==null)match.position.lerp(tip,.18);
+ match.quaternion.copy(camera.quaternion);match.rotateZ(-.3);
+ const matchOpacity=1-smooth(.12,.7,age);match.visible=matchOpacity>.01;match.scale.setScalar(Math.max(.001,matchOpacity));
  matchFire.position.copy(match.position);matchLight.position.copy(match.position);matchLight.intensity=matchOpacity*unit*unit*.22;
  updateFire(matchFire,ft,matchOpacity);updateFire(candleFire,ft,ignition);
  candleLight.intensity=ignition*unit*unit*(.11+.014*Math.sin(ft*7.2));renderStars(ft,reveal);
- if(t>=9&&box.dataset.phase!=='lit'){box.dataset.phase='lit';document.querySelector('#replay').disabled=false;}
+ if(age>=2.8&&box.dataset.phase!=='lit'){box.dataset.phase='lit';document.querySelector('#replay').disabled=false;instruction.textContent='左右拖动旋转 · 可重新点亮';}
+
  }
  renderer.render(scene,camera);
 }
