@@ -19,7 +19,7 @@ function light(color,x,y,z){const l=new THREE.DirectionalLight(color,0);l.positi
 const key=light(0xffdedc,4,6,7),fill=light(0x7974ff,-5,2,3),rim=light(0xee8fca,2,4,-5);
 let model,bounds,unit=1,center=new THREE.Vector3(),tip=new THREE.Vector3(),initialCamera,initialTarget;
 let match,matchFire,candleFire,matchLight,candleLight,ignitionAt=null,hoverSince=null;
-let wishAt=null,extinguishedAt=null,micEpoch=0,micStream=null,audioContext=null,audioSource=null,analyser=null,wave=null,frequency=null,micStarted=0,lastAudioTime=0,noiseFloor=.004,breathDuration=0;
+let wishAt=null,extinguishedAt=null,micEpoch=0,micStream=null,audioContext=null,audioSource=null,analyser=null,wave=null,frequency=null,micStarted=0,lastAudioTime=0,noiseFloor=.001,breathDuration=0,audioSink=null,audioTimer=null,calibration=[],lastSoundAt=0;
 const ritual=document.querySelector('#ritual'),ritualTitle=document.querySelector('#ritualTitle'),ritualStatus=document.querySelector('#ritualStatus'),wishDone=document.querySelector('#wishDone'),manualBlow=document.querySelector('#manualBlow'),breathMeter=document.querySelector('#breathMeter');
 const pointer={x:0,y:0,active:false,down:false,touch:false};
 const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2(),pointerPlane=new THREE.Plane(),viewDirection=new THREE.Vector3();
@@ -99,7 +99,7 @@ function ignite(now){
  controls.touches.ONE=THREE.TOUCH.ROTATE;instruction.textContent='正在点亮…';
 }
 function stopMicrophone(){
- micEpoch++;if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}
+ micEpoch++;if(audioTimer!==null){clearInterval(audioTimer);audioTimer=null;}if(audioSink){audioSink.disconnect();audioSink=null;}if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}
  if(audioSource){audioSource.disconnect();audioSource=null;}analyser=null;wave=null;frequency=null;
  const old=audioContext;audioContext=null;if(old&&old.state!=='closed')old.close().catch(()=>{});
  breathDuration=0;breathMeter.hidden=true;
@@ -121,8 +121,8 @@ async function listenForBreath(){
   stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
   if(epoch!==micEpoch){stream.getTracks().forEach(t=>t.stop());if(ctx.state!=='closed')await ctx.close();return;}
   micStream=stream;analyser=ctx.createAnalyser();analyser.fftSize=2048;analyser.smoothingTimeConstant=.35;
-  audioSource=ctx.createMediaStreamSource(stream);audioSource.connect(analyser);wave=new Float32Array(analyser.fftSize);frequency=new Float32Array(analyser.frequencyBinCount);
-  micStarted=lastAudioTime=performance.now();noiseFloor=.004;breathDuration=0;box.dataset.phase='listening';wishDone.hidden=true;breathMeter.hidden=false;ritualStatus.textContent='准备中，请稍等片刻…';
+  audioSource=ctx.createMediaStreamSource(stream);audioSource.connect(analyser);audioSink=ctx.createGain();audioSink.gain.value=0;analyser.connect(audioSink);audioSink.connect(ctx.destination);if(ctx.state!=='running')await ctx.resume();if(epoch!==micEpoch)return;wave=new Float32Array(analyser.fftSize);frequency=new Float32Array(analyser.frequencyBinCount);
+  micStarted=lastAudioTime=lastSoundAt=performance.now();noiseFloor=.001;breathDuration=0;calibration=[];box.dataset.phase='listening';wishDone.hidden=true;breathMeter.hidden=false;ritualStatus.textContent='请安静半秒，正在准备…';audioTimer=setInterval(()=>sampleBreath(performance.now()),50);
   stream.getAudioTracks().forEach(track=>track.onended=()=>{if(epoch===micEpoch)microphoneError('麦克风连接已中断，请重试。');});
  }catch(error){
   if(stream)stream.getTracks().forEach(t=>t.stop());if(epoch!==micEpoch)return;
@@ -134,14 +134,19 @@ function extinguish(){
 }
 function sampleBreath(now){
  if(!analyser||box.dataset.phase!=='listening')return;
- analyser.getFloatTimeDomainData(wave);analyser.getFloatFrequencyData(frequency);const f=breathFeatures(wave,frequency,audioContext.sampleRate),dt=Math.min(.1,(now-lastAudioTime)/1000);lastAudioTime=now;
- if(now-micStarted<650){noiseFloor=Math.min(.025,noiseFloor*.8+f.rms*.2);return;}
- ritualStatus.textContent='靠近麦克风，轻轻呼——';
- const blowing=isBreath(f,noiseFloor);breathDuration=blowing?breathDuration+dt:Math.max(0,breathDuration-dt*2);
- if(!blowing&&f.rms<noiseFloor*1.5)noiseFloor=Math.max(.002,noiseFloor*.995+f.rms*.005);
- breathMeter.style.setProperty('--breath',Math.min(1,f.rms/.1).toFixed(3));
- if(breathDuration>=.38)extinguish();
+ analyser.getFloatTimeDomainData(wave);analyser.getFloatFrequencyData(frequency);const f=breathFeatures(wave,frequency,audioContext.sampleRate),dt=Math.min(.15,(now-lastAudioTime)/1000);lastAudioTime=now;
+ const elapsed=now-micStarted;
+ breathMeter.style.setProperty('--breath',clamp((20*Math.log10(Math.max(f.rms,1e-6))+75)/55,0,1).toFixed(3));
+ if(elapsed<500){calibration.push(f.rms);const sorted=[...calibration].sort((a,b)=>a-b);noiseFloor=clamp(sorted[Math.floor(sorted.length*.15)]||.0002,.0002,.003);return;}
+ if(f.rms>.00005)lastSoundAt=now;
+ if(audioContext.state!=='running'){ritualStatus.textContent='声音检测已暂停，请点击重新检测。';wishDone.textContent='重新检测';wishDone.hidden=false;wishDone.disabled=false;manualBlow.hidden=false;return;}
+ ritualStatus.textContent=now-lastSoundAt>2500?'麦克风没有收到声音，请检查输入设备或重新检测。':'对着麦克风呼——，音量条会随声音变化';
+ const blowing=isBreath(f,noiseFloor);breathDuration=blowing?breathDuration+dt:Math.max(0,breathDuration-dt*.65);
+ if(!blowing&&f.rms<noiseFloor*1.2)noiseFloor=Math.max(.0002,noiseFloor*.97+f.rms*.03);
+ if(elapsed>6500){wishDone.textContent='重新检测';wishDone.hidden=false;wishDone.disabled=false;manualBlow.hidden=false;}
+ if(breathDuration>=.24)extinguish();
 }
+
 wishDone.onclick=listenForBreath;manualBlow.onclick=extinguish;
 window.addEventListener('pagehide',stopMicrophone);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&['requesting','listening'].includes(box.dataset.phase))microphoneError('检测已暂停，返回后点击重试麦克风。');});
@@ -181,7 +186,6 @@ function animate(now){
    if(near){hoverSince??=now;if(now-hoverSince>=420)ignite(now);}else hoverSince=null;
    targetHint.style.setProperty('--hold',hoverSince===null?0:Math.min(1,(now-hoverSince)/420));
  }
- sampleBreath(now);
  const age=ignitionAt===null?-1:(now-ignitionAt)/1000,dim=wishAt===null?1:1-.82*(reducedMotion?1:smooth(0,1.8,(now-wishAt)/1000)),reveal=smooth(.25,2.8,age)*dim,ignition=smooth(0,.35,age),out=extinguishedAt===null?1:1-smooth(0,reducedMotion?.01:.65,(now-extinguishedAt)/1000);
  stage.style.setProperty('--reveal',reveal.toFixed(4));
  ambient.intensity=.075+reveal*.81;key.intensity=.045+reveal*.75;fill.intensity=.05+reveal*1.05;rim.intensity=.015+reveal*1.2;
