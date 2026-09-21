@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {breathFeatures,isBreath} from './breath.js';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from './assets/meshopt_decoder.module.js';
@@ -18,6 +19,8 @@ function light(color,x,y,z){const l=new THREE.DirectionalLight(color,0);l.positi
 const key=light(0xffdedc,4,6,7),fill=light(0x7974ff,-5,2,3),rim=light(0xee8fca,2,4,-5);
 let model,bounds,unit=1,center=new THREE.Vector3(),tip=new THREE.Vector3(),initialCamera,initialTarget;
 let match,matchFire,candleFire,matchLight,candleLight,ignitionAt=null,hoverSince=null;
+let wishAt=null,extinguishedAt=null,micEpoch=0,micStream=null,audioContext=null,audioSource=null,analyser=null,wave=null,frequency=null,micStarted=0,lastAudioTime=0,noiseFloor=.004,breathDuration=0;
+const ritual=document.querySelector('#ritual'),ritualTitle=document.querySelector('#ritualTitle'),ritualStatus=document.querySelector('#ritualStatus'),wishDone=document.querySelector('#wishDone'),manualBlow=document.querySelector('#manualBlow'),breathMeter=document.querySelector('#breathMeter');
 const pointer={x:0,y:0,active:false,down:false,touch:false};
 const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2(),pointerPlane=new THREE.Plane(),viewDirection=new THREE.Vector3();
 const targetHint=document.querySelector('#igniteTarget'),instruction=document.querySelector('#instruction');
@@ -85,7 +88,7 @@ function setupEffect(){
  replay();
 }
 function replay(){
- if(!model)return;ignitionAt=null;hoverSince=null;pointer.active=false;
+ if(!model)return;stopMicrophone();wishAt=null;extinguishedAt=null;ritual.hidden=true;manualBlow.hidden=true;breathMeter.hidden=true;candleFire.scale.setScalar(1);ignitionAt=null;hoverSince=null;pointer.active=false;
  controls.autoRotate=false;document.querySelector('#rotate').setAttribute('aria-pressed','false');
  controls.touches.ONE=THREE.TOUCH.PAN;
  document.querySelector('#replay').disabled=true;box.dataset.phase='awaiting';
@@ -95,6 +98,53 @@ function ignite(now){
  ignitionAt=now-(reducedMotion?3000:0);hoverSince=null;box.dataset.phase='igniting';
  controls.touches.ONE=THREE.TOUCH.ROTATE;instruction.textContent='正在点亮…';
 }
+function stopMicrophone(){
+ micEpoch++;if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}
+ if(audioSource){audioSource.disconnect();audioSource=null;}analyser=null;wave=null;frequency=null;
+ const old=audioContext;audioContext=null;if(old&&old.state!=='closed')old.close().catch(()=>{});
+ breathDuration=0;breathMeter.hidden=true;
+}
+function beginWish(now){
+ wishAt=now;box.dataset.phase='wishing';controls.autoRotate=false;document.querySelector('#rotate').setAttribute('aria-pressed','false');
+ ritual.hidden=false;ritualTitle.textContent='闭个眼睛，许个愿吧';ritualStatus.textContent='';wishDone.textContent='许好了';wishDone.hidden=false;wishDone.disabled=false;manualBlow.hidden=true;
+ document.querySelector('#replay').disabled=false;instruction.textContent='闭个眼睛，许个愿吧';
+}
+function microphoneError(message){
+ stopMicrophone();box.dataset.phase='mic-error';ritualStatus.textContent=message;wishDone.textContent='重试麦克风';wishDone.hidden=false;wishDone.disabled=false;manualBlow.hidden=false;
+}
+async function listenForBreath(){
+ stopMicrophone();const epoch=micEpoch;box.dataset.phase='requesting';ritualTitle.textContent='吹灭蜡烛';ritualStatus.textContent='请允许使用麦克风，听见吹气声后蜡烛就会熄灭。';wishDone.disabled=true;manualBlow.hidden=true;
+ let stream=null,ctx=null;
+ try{
+  if(!navigator.mediaDevices?.getUserMedia)throw Object.assign(new Error(),{name:'Unsupported'});
+  ctx=new (window.AudioContext||window.webkitAudioContext)();audioContext=ctx;await ctx.resume();
+  stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+  if(epoch!==micEpoch){stream.getTracks().forEach(t=>t.stop());if(ctx.state!=='closed')await ctx.close();return;}
+  micStream=stream;analyser=ctx.createAnalyser();analyser.fftSize=2048;analyser.smoothingTimeConstant=.35;
+  audioSource=ctx.createMediaStreamSource(stream);audioSource.connect(analyser);wave=new Float32Array(analyser.fftSize);frequency=new Float32Array(analyser.frequencyBinCount);
+  micStarted=lastAudioTime=performance.now();noiseFloor=.004;breathDuration=0;box.dataset.phase='listening';wishDone.hidden=true;breathMeter.hidden=false;ritualStatus.textContent='准备中，请稍等片刻…';
+  stream.getAudioTracks().forEach(track=>track.onended=()=>{if(epoch===micEpoch)microphoneError('麦克风连接已中断，请重试。');});
+ }catch(error){
+  if(stream)stream.getTracks().forEach(t=>t.stop());if(epoch!==micEpoch)return;
+  const message=error.name==='NotAllowedError'?'未获得麦克风权限，请在浏览器中允许后重试。':error.name==='NotFoundError'?'没有找到麦克风。你也可以轻触按钮吹灭。':error.name==='Unsupported'?'当前浏览器无法使用麦克风，你也可以轻触按钮吹灭。':'麦克风暂时无法使用，请重试或轻触吹灭。';microphoneError(message);
+ }
+}
+function extinguish(){
+ if(extinguishedAt!==null)return;extinguishedAt=performance.now();stopMicrophone();box.dataset.phase='blown';ritualTitle.textContent='蜡烛已熄灭';ritualStatus.textContent='愿你的心愿慢慢实现。';wishDone.hidden=true;manualBlow.hidden=true;instruction.textContent='蜡烛已熄灭';document.querySelector('#replay').disabled=false;
+}
+function sampleBreath(now){
+ if(!analyser||box.dataset.phase!=='listening')return;
+ analyser.getFloatTimeDomainData(wave);analyser.getFloatFrequencyData(frequency);const f=breathFeatures(wave,frequency,audioContext.sampleRate),dt=Math.min(.1,(now-lastAudioTime)/1000);lastAudioTime=now;
+ if(now-micStarted<650){noiseFloor=Math.min(.025,noiseFloor*.8+f.rms*.2);return;}
+ ritualStatus.textContent='靠近麦克风，轻轻呼——';
+ const blowing=isBreath(f,noiseFloor);breathDuration=blowing?breathDuration+dt:Math.max(0,breathDuration-dt*2);
+ if(!blowing&&f.rms<noiseFloor*1.5)noiseFloor=Math.max(.002,noiseFloor*.995+f.rms*.005);
+ breathMeter.style.setProperty('--breath',Math.min(1,f.rms/.1).toFixed(3));
+ if(breathDuration>=.38)extinguish();
+}
+wishDone.onclick=listenForBreath;manualBlow.onclick=extinguish;
+window.addEventListener('pagehide',stopMicrophone);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&['requesting','listening'].includes(box.dataset.phase))microphoneError('检测已暂停，返回后点击重试麦克风。');});
 function renderStars(time,reveal){
  const w=box.clientWidth,h=box.clientHeight;skyContext.clearRect(0,0,w,h);if(reveal<=0)return;
  for(const s of stars){if(s.x<.25&&s.y<.26)continue;const x=s.x*w,y=s.y*h,alpha=reveal*(.25+.65*(.5+.5*Math.sin(time*.8+s.phase)));
@@ -131,16 +181,17 @@ function animate(now){
    if(near){hoverSince??=now;if(now-hoverSince>=420)ignite(now);}else hoverSince=null;
    targetHint.style.setProperty('--hold',hoverSince===null?0:Math.min(1,(now-hoverSince)/420));
  }
- const age=ignitionAt===null?-1:(now-ignitionAt)/1000,reveal=smooth(.25,2.8,age),ignition=smooth(0,.35,age);
+ sampleBreath(now);
+ const age=ignitionAt===null?-1:(now-ignitionAt)/1000,dim=wishAt===null?1:1-.82*(reducedMotion?1:smooth(0,1.8,(now-wishAt)/1000)),reveal=smooth(.25,2.8,age)*dim,ignition=smooth(0,.35,age),out=extinguishedAt===null?1:1-smooth(0,reducedMotion?.01:.65,(now-extinguishedAt)/1000);
  stage.style.setProperty('--reveal',reveal.toFixed(4));
  ambient.intensity=.075+reveal*.81;key.intensity=.045+reveal*.75;fill.intensity=.05+reveal*1.05;rim.intensity=.015+reveal*1.2;
  if(ignitionAt!==null)match.position.lerp(tip,.18);
  match.quaternion.copy(camera.quaternion);match.rotateZ(-.3);
  const matchOpacity=1-smooth(.12,.7,age);match.visible=matchOpacity>.01;match.scale.setScalar(Math.max(.001,matchOpacity));
  matchFire.position.copy(match.position);matchLight.position.copy(match.position);matchLight.intensity=matchOpacity*unit*unit*.22;
- updateFire(matchFire,ft,matchOpacity);updateFire(candleFire,ft,ignition);
- candleLight.intensity=ignition*unit*unit*(.11+.014*Math.sin(ft*7.2));renderStars(ft,reveal);
- if(age>=2.8&&box.dataset.phase!=='lit'){box.dataset.phase='lit';document.querySelector('#replay').disabled=false;instruction.textContent='左右拖动旋转 · 可重新点亮';}
+ updateFire(matchFire,ft,matchOpacity);updateFire(candleFire,ft,ignition*out);candleFire.scale.y=.25+.75*out;
+ candleLight.intensity=ignition*out*unit*unit*(.11+.014*Math.sin(ft*7.2));renderStars(ft,reveal);
+ if(age>=2.8&&box.dataset.phase==='igniting')beginWish(now);
 
  }
  renderer.render(scene,camera);
