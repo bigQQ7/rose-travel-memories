@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import HowItWorks, { type Step } from '../components/ui/how-it-works';
+import TripDetail from './TripDetail';
+import './base-travel.css';
+import './gallery-styles.css';
 
 const trips: Step[] = [
   { date: '2021.5', title: '杭州', description: '我们第一次一起去旅行', image: './assets/trip-1.png', colorTheme: 'orange' },
@@ -13,12 +16,13 @@ function Travel() {
   const [view, setView] = useState<'closed' | 'question' | 'timeline'>('closed');
   const [answer, setAnswer] = useState('');
   const [hint, setHint] = useState('');
+  const [selected, setSelected] = useState<number | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     const open = () => { setAnswer(''); setHint(''); setView('question'); };
-    const reset = () => setView('closed');
+    const reset = () => { setSelected(null); setView('closed'); };
     window.addEventListener('travel:open', open);
     window.addEventListener('travel:reset', reset);
     return () => { window.removeEventListener('travel:open', open); window.removeEventListener('travel:reset', reset); };
@@ -53,9 +57,10 @@ function Travel() {
     {view === 'timeline' && <section className="travel-timeline" aria-label="我们的旅行时间轴">
       <header className="travel-top"><span>我们的旅行手记</span><button onClick={() => setView('closed')}>回到蜡烛</button></header>
       <div className="travel-intro"><p className="travel-eyebrow">2021 — 2025</p><h2 id="travel-timeline-title" ref={heading} tabIndex={-1}>我们一起走过的地方</h2><p>从杭州出发，把沿途的回忆一页页收好。</p></div>
-      <HowItWorks features={trips} className="travel-cards" />
+      <HowItWorks features={trips} className="travel-cards" onSelect={setSelected} />
       <p className="travel-ending">下一程，也想和你一起。</p>
     </section>}
+    {selected!==null&&view==='timeline'&&<TripDetail index={selected} trip={trips[selected]} onClose={()=>setSelected(null)} />}
   </dialog>;
 }
 const container = document.getElementById('travel-root');
