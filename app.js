@@ -19,6 +19,9 @@ function light(color,x,y,z){const l=new THREE.DirectionalLight(color,0);l.positi
 const key=light(0xffdedc,4,6,7),fill=light(0x7974ff,-5,2,3),rim=light(0xee8fca,2,4,-5);
 let model,bounds,unit=1,center=new THREE.Vector3(),tip=new THREE.Vector3(),initialCamera,initialTarget;
 let match,matchFire,candleFire,matchLight,candleLight,ignitionAt=null,hoverSince=null;
+let travelTimer=null;
+const travelStart=document.querySelector("#travelStart");
+travelStart.onclick=()=>window.dispatchEvent(new Event("travel:open"));
 let wishAt=null,extinguishedAt=null,micEpoch=0,micStream=null,audioContext=null,audioSource=null,analyser=null,wave=null,frequency=null,micStarted=0,lastAudioTime=0,noiseFloor=.001,breathDuration=0,breathGap=0,audioSink=null,audioTimer=null,calibration=[],lastSoundAt=0;
 const ritual=document.querySelector('#ritual'),ritualTitle=document.querySelector('#ritualTitle'),ritualStatus=document.querySelector('#ritualStatus'),wishDone=document.querySelector('#wishDone'),manualBlow=document.querySelector('#manualBlow'),breathMeter=document.querySelector('#breathMeter');
 const pointer={x:0,y:0,active:false,down:false,touch:false};
@@ -88,7 +91,7 @@ function setupEffect(){
  replay();
 }
 function replay(){
- if(!model)return;stopMicrophone();wishAt=null;extinguishedAt=null;ritual.hidden=true;manualBlow.hidden=true;breathMeter.hidden=true;candleFire.scale.setScalar(1);ignitionAt=null;hoverSince=null;pointer.active=false;pointer.down=false;pointer.touch=false;
+ if(!model)return;clearTimeout(travelTimer);travelStart.hidden=true;window.dispatchEvent(new Event("travel:reset"));stopMicrophone();wishAt=null;extinguishedAt=null;ritual.hidden=true;manualBlow.hidden=true;breathMeter.hidden=true;candleFire.scale.setScalar(1);ignitionAt=null;hoverSince=null;pointer.active=false;pointer.down=false;pointer.touch=false;
  controls.autoRotate=false;document.querySelector('#rotate').setAttribute('aria-pressed','false');
  controls.enableRotate=false;controls.touches.ONE=THREE.TOUCH.PAN;
  document.querySelector('#replay').disabled=true;box.dataset.phase='awaiting';
@@ -130,7 +133,7 @@ async function listenForBreath(){
  }
 }
 function extinguish(){
- if(extinguishedAt!==null)return;extinguishedAt=performance.now();stopMicrophone();box.dataset.phase='blown';ritualTitle.textContent='蜡烛已熄灭';ritualStatus.textContent='愿你的心愿慢慢实现。';wishDone.hidden=true;manualBlow.hidden=true;instruction.textContent='蜡烛已熄灭';document.querySelector('#replay').disabled=false;
+ if(extinguishedAt!==null)return;travelStart.hidden=false;travelTimer=setTimeout(()=>window.dispatchEvent(new Event('travel:open')),1200);extinguishedAt=performance.now();stopMicrophone();box.dataset.phase='blown';ritualTitle.textContent='蜡烛已熄灭';ritualStatus.textContent='愿你的心愿慢慢实现。';wishDone.hidden=true;manualBlow.hidden=true;instruction.textContent='蜡烛已熄灭';document.querySelector('#replay').disabled=false;
 }
 function sampleBreath(now){
  if(!analyser||box.dataset.phase!=='listening')return;
