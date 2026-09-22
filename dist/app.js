@@ -88,15 +88,15 @@ function setupEffect(){
  replay();
 }
 function replay(){
- if(!model)return;stopMicrophone();wishAt=null;extinguishedAt=null;ritual.hidden=true;manualBlow.hidden=true;breathMeter.hidden=true;candleFire.scale.setScalar(1);ignitionAt=null;hoverSince=null;pointer.active=false;
+ if(!model)return;stopMicrophone();wishAt=null;extinguishedAt=null;ritual.hidden=true;manualBlow.hidden=true;breathMeter.hidden=true;candleFire.scale.setScalar(1);ignitionAt=null;hoverSince=null;pointer.active=false;pointer.down=false;pointer.touch=false;
  controls.autoRotate=false;document.querySelector('#rotate').setAttribute('aria-pressed','false');
- controls.touches.ONE=THREE.TOUCH.PAN;
+ controls.enableRotate=false;controls.touches.ONE=THREE.TOUCH.PAN;
  document.querySelector('#replay').disabled=true;box.dataset.phase='awaiting';
  instruction.textContent=matchMedia('(pointer: coarse)').matches?'拖动火柴到顶部，停留片刻点亮':'移动鼠标，将火柴靠近顶部点亮';
 }
 function ignite(now){
  ignitionAt=now-(reducedMotion?3000:0);hoverSince=null;box.dataset.phase='igniting';
- controls.touches.ONE=THREE.TOUCH.ROTATE;instruction.textContent='正在点亮…';
+ controls.enableRotate=true;controls.touches.ONE=THREE.TOUCH.ROTATE;instruction.textContent='正在点亮…';
 }
 function stopMicrophone(){
  micEpoch++;if(audioTimer!==null){clearInterval(audioTimer);audioTimer=null;}if(audioSink){audioSink.disconnect();audioSink=null;}if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}
@@ -181,8 +181,13 @@ function animate(now){
    if(pointer.active){pointerNdc.set(pointer.x/box.clientWidth*2-1,1-pointer.y/box.clientHeight*2);}
    else{const parked=new THREE.Vector3(center.x-unit*.34,center.y+unit*.2,center.z+unit*.4).project(camera);pointerNdc.set(parked.x,parked.y);}
    raycaster.setFromCamera(pointerNdc,camera);raycaster.ray.intersectPlane(pointerPlane,match.position);
-   const radius=pointer.touch?32:22;
-   const near=pointer.active&&(!pointer.down||pointer.touch)&&Math.hypot(pointer.x-tx,pointer.y-ty)<radius;
+   // Accept contact anywhere along the visible flame, including while dragging.
+   const flameTop=match.position.clone().add(new THREE.Vector3(0,unit*.065*.9,0).applyQuaternion(camera.quaternion)).project(camera);
+   const fx=(flameTop.x*.5+.5)*box.clientWidth,fy=(.5-flameTop.y*.5)*box.clientHeight;
+   const dx=fx-pointer.x,dy=fy-pointer.y,lengthSq=dx*dx+dy*dy;
+   const along=lengthSq?clamp(((tx-pointer.x)*dx+(ty-pointer.y)*dy)/lengthSq,0,1):0;
+   const radius=pointer.touch?32:24;
+   const near=pointer.active&&Math.hypot(pointer.x+along*dx-tx,pointer.y+along*dy-ty)<radius;
    if(near){hoverSince??=now;if(now-hoverSince>=420)ignite(now);}else hoverSince=null;
    targetHint.style.setProperty('--hold',hoverSince===null?0:Math.min(1,(now-hoverSince)/420));
  }
