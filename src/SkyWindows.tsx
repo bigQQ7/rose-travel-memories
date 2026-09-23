@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './sky-windows.css';
+import BoardingGate from './BoardingGate';
 
 type Story = {
   years: string; route: string; title: string; subtitle: string; cover: string;
@@ -107,26 +108,7 @@ export default function SkyWindows() {
   const [selected, setSelected] = useState<number | null>(null);
   const [zoomOrigin, setZoomOrigin] = useState({ top: 0, right: 0, bottom: 0, left: 0 });
   const [shades, setShades] = useState([1, 1]);
-  useEffect(() => {
-    const root = section.current;
-    const scrollBox = root?.closest('dialog.travel-dialog');
-    if (!root || !scrollBox) return;
-    let frame = 0;
-    const update = () => {
-      frame = 0;
-      const bounds = root.getBoundingClientRect();
-      const viewport = scrollBox.getBoundingClientRect();
-      const travel = Math.max(1, bounds.height - viewport.height);
-      const progress = Math.max(0, Math.min(1, (viewport.top - bounds.top) / travel));
-      root.style.setProperty('--flight-progress', progress.toFixed(3));
-      root.classList.toggle('flight-ready', progress > .36);
-    };
-    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
-    update();
-    scrollBox.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => { scrollBox.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); if (frame) cancelAnimationFrame(frame); };
-  }, []);
+  const [boarded, setBoarded] = useState(false);
   useEffect(() => {
     if (selected === null) return;
     const el = modal.current;
@@ -145,17 +127,10 @@ export default function SkyWindows() {
   };
   const story = selected === null ? null : stories[selected];
   const storyNumber = selected === null ? 0 : selected + 1;
-  return <section className="flight-journey" ref={section} style={{ '--cabin-dark': Math.pow(Math.min(...shades), 1.5) } as React.CSSProperties} aria-labelledby="flight-journey-title">
+  return <section className={`flight-journey${boarded ? ' is-boarded' : ''}`} ref={section} style={{ '--cabin-dark': boarded ? Math.pow(Math.min(...shades), 1.5) : 0 } as React.CSSProperties} aria-labelledby="flight-journey-title">
     <div className="flight-stage">
       <div className="flight-header"><span>OUR JOURNEY</span><span>2021 — 2025</span></div>
-      <div className="flight-boarding" aria-hidden="true">
-        <div className="flight-ticket">
-          <div className="flight-ticket-main"><small>BOARDING PASS / 送给我们的下一程</small><div><strong>回忆</strong><span>✈</span><strong>未来</strong></div><p>乘客：我们俩　　航班：LOVE 02</p></div>
-          <div className="flight-ticket-stub"><small>FLIGHT</small><strong>02</strong><span>ONE WAY</span></div>
-        </div>
-        <div className="flight-scanner"><div className="flight-slot" /><span>READY TO DEPART</span></div>
-        <p>继续向下，走进我们的下一段故事</p>
-      </div>
+      {!boarded && <BoardingGate onBoard={() => setBoarded(true)} />}
       <div className="flight-destinations">
         <p className="flight-kicker">THE VIEW FROM HERE</p>
         <h2 id="flight-journey-title">窗外，是我们一起走过的路。</h2>
