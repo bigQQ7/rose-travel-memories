@@ -54,8 +54,10 @@ function WindowChoice({ item, index, shade, setShade, onOpen }: { item: Story; i
   const [dragging, setDragging] = useState(false);
   const drag = useRef<{ pointerId: number; startY: number; startShade: number; height: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
+  const pressedWindow = useRef(false);
   const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     const windowEl = (event.target as HTMLElement).closest('.flight-window') as HTMLElement | null;
+    pressedWindow.current = Boolean(windowEl);
     if (!windowEl || event.button !== 0) return;
     setDragging(true);
     drag.current = { pointerId: event.pointerId, startY: event.clientY, startShade: shade, height: windowEl.clientHeight, moved: false };
@@ -71,9 +73,12 @@ function WindowChoice({ item, index, shade, setShade, onOpen }: { item: Story; i
   const onPointerEnd = (event: React.PointerEvent<HTMLButtonElement>) => {
     const current = drag.current;
     if (!current || current.pointerId !== event.pointerId) return;
+    const finalShade = Math.max(0, Math.min(1, current.startShade + (event.clientY - current.startY) / (current.height * .75)));
     if (current.moved) {
+      setShade(finalShade);
       suppressClick.current = true;
       window.setTimeout(() => { suppressClick.current = false; }, 0);
+      if (event.type !== 'pointercancel' && current.startShade > .5 && finalShade < .28) onOpen(event.currentTarget);
     }
     drag.current = null;
     setDragging(false);
@@ -81,6 +86,8 @@ function WindowChoice({ item, index, shade, setShade, onOpen }: { item: Story; i
   };
   return <button type="button" className={`flight-window-choice${dragging ? ' is-dragging' : ''}`} aria-label={`打开故事：${item.title}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd} onClick={event => {
     if (suppressClick.current) { suppressClick.current = false; return; }
+    if (pressedWindow.current && shade > .5) { pressedWindow.current = false; return; }
+    pressedWindow.current = false;
     onOpen(event.currentTarget);
   }}>
     <FlightWindow variant={index} shade={shade} />
@@ -93,7 +100,7 @@ export default function SkyWindows() {
   const modal = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
-  const [shades, setShades] = useState([0, 0]);
+  const [shades, setShades] = useState([1, 1]);
   useEffect(() => {
     const root = section.current;
     const scrollBox = root?.closest('dialog.travel-dialog');
@@ -144,7 +151,7 @@ export default function SkyWindows() {
         <div className="flight-window-list">
           {stories.map((item, i) => <WindowChoice item={item} index={i} key={item.title} shade={shades[i]} setShade={value => setShades(previous => previous.map((old, index) => index === i ? value : old))} onOpen={target => openStory(i, target)} />)}
         </div>
-        <p className="flight-hint">拖动舷窗遮光板，点击进入故事</p>
+        <p className="flight-hint">向上拉开一扇舷窗，进入对应的故事</p>
       </div>
     </div>
     {story && <dialog className="flight-story" ref={modal} aria-labelledby="flight-story-title" onCancel={e => { e.preventDefault(); e.stopPropagation(); setSelected(null); }} onClose={e => e.stopPropagation()}>
