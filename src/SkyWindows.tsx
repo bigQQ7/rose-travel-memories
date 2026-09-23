@@ -27,24 +27,37 @@ const stories: Story[] = [
   },
 ];
 
-function FlightWindow({ image, variant = 0, shade = 0 }: { image: string; variant?: number; shade?: number }) {
-  return <span className={`flight-window flight-window-${variant}`} style={{ '--shade-height': `${10 + shade * 76}%` } as React.CSSProperties} aria-hidden="true">
+function FlightWindow({ variant = 0, shade = 0 }: { variant?: number; shade?: number }) {
+  const cloudId = React.useId().replace(/:/g, '');
+  return <span className={`flight-window flight-window-${variant}`} style={{ '--shade-offset': `${-92 * (1 - shade)}%` } as React.CSSProperties} aria-hidden="true">
     <span className="flight-window-recess"><span className="flight-window-glass">
-      <img src={image} alt="" loading="lazy" />
-      <span className="flight-window-sky" /><span className="flight-window-cloud flight-window-cloud-a" />
-      <span className="flight-window-cloud flight-window-cloud-b" /><span className="flight-window-cloud flight-window-cloud-c" />
+      <span className="flight-window-sky" />
+      <svg className="flight-cloudscape" viewBox="0 0 200 280" preserveAspectRatio="none">
+        <defs>
+          <filter id={`${cloudId}-cloud`} x="-30%" y="-30%" width="160%" height="160%">
+            <feTurbulence type="fractalNoise" baseFrequency=".012 .018" numOctaves="3" seed={8 + variant * 4} />
+            <feDiffuseLighting lightingColor="#f5fbff" surfaceScale="7" diffuseConstant="1.1"><feDistantLight azimuth="220" elevation="48" /></feDiffuseLighting>
+            <feComponentTransfer><feFuncR type="linear" slope=".4" intercept=".56" /><feFuncG type="linear" slope=".36" intercept=".62" /><feFuncB type="linear" slope=".3" intercept=".69" /></feComponentTransfer>
+            <feGaussianBlur stdDeviation=".8" />
+          </filter>
+          <linearGradient id={`${cloudId}-fade`} x2="0" y2="1"><stop offset="0" stopColor="white" stopOpacity="0" /><stop offset=".18" stopColor="white" stopOpacity=".95" /><stop offset="1" stopColor="white" /></linearGradient>
+          <mask id={`${cloudId}-mask`}><rect x="-50" y="112" width="300" height="190" fill={`url(#${cloudId}-fade)`} /></mask>
+        </defs>
+        <rect x="-50" y="112" width="300" height="190" filter={`url(#${cloudId}-cloud)`} mask={`url(#${cloudId}-mask)`} opacity=".8" />
+      </svg>
+      <span className="flight-window-shade"><span className="flight-window-handle" /></span>
     </span></span>
-    <span className="flight-window-shade"><span className="flight-window-handle" /></span>
   </span>;
 }
 
-function WindowChoice({ item, index, onOpen }: { item: Story; index: number; onOpen: (target: HTMLElement) => void }) {
-  const [shade, setShade] = useState(0);
+function WindowChoice({ item, index, shade, setShade, onOpen }: { item: Story; index: number; shade: number; setShade: (value: number) => void; onOpen: (target: HTMLElement) => void }) {
+  const [dragging, setDragging] = useState(false);
   const drag = useRef<{ pointerId: number; startY: number; startShade: number; height: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
   const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     const windowEl = (event.target as HTMLElement).closest('.flight-window') as HTMLElement | null;
-    if (!windowEl) return;
+    if (!windowEl || event.button !== 0) return;
+    setDragging(true);
     drag.current = { pointerId: event.pointerId, startY: event.clientY, startShade: shade, height: windowEl.clientHeight, moved: false };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -63,13 +76,14 @@ function WindowChoice({ item, index, onOpen }: { item: Story; index: number; onO
       window.setTimeout(() => { suppressClick.current = false; }, 0);
     }
     drag.current = null;
+    setDragging(false);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
-  return <button type="button" className="flight-window-choice" aria-label={`打开故事：${item.title}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd} onClick={event => {
+  return <button type="button" className={`flight-window-choice${dragging ? ' is-dragging' : ''}`} aria-label={`打开故事：${item.title}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd} onClick={event => {
     if (suppressClick.current) { suppressClick.current = false; return; }
     onOpen(event.currentTarget);
   }}>
-    <FlightWindow image={item.cover} variant={index} shade={shade} />
+    <FlightWindow variant={index} shade={shade} />
     <span className="flight-window-info"><small>0{index + 1} / 02 · {item.years}</small><strong>{item.title}</strong><em>{item.route}</em><span>打开这段故事 ↗</span></span>
   </button>;
 }
@@ -79,6 +93,7 @@ export default function SkyWindows() {
   const modal = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
+  const [shades, setShades] = useState([0, 0]);
   useEffect(() => {
     const root = section.current;
     const scrollBox = root?.closest('dialog.travel-dialog');
@@ -111,7 +126,7 @@ export default function SkyWindows() {
   const openStory = (index: number, target: HTMLElement) => { opener.current = target; setSelected(index); };
   const story = selected === null ? null : stories[selected];
   const storyNumber = selected === null ? 0 : selected + 1;
-  return <section className="flight-journey" ref={section} aria-labelledby="flight-journey-title">
+  return <section className="flight-journey" ref={section} style={{ '--cabin-dark': Math.pow(Math.min(...shades), 1.5) } as React.CSSProperties} aria-labelledby="flight-journey-title">
     <div className="flight-stage">
       <div className="flight-header"><span>OUR JOURNEY</span><span>2021 — 2025</span></div>
       <div className="flight-boarding" aria-hidden="true">
@@ -127,7 +142,7 @@ export default function SkyWindows() {
         <h2 id="flight-journey-title">窗外，是我们一起走过的路。</h2>
         <div className="flight-route" aria-hidden="true"><i /><span>✈</span><i /></div>
         <div className="flight-window-list">
-          {stories.map((item, i) => <WindowChoice item={item} index={i} key={item.title} onOpen={target => openStory(i, target)} />)}
+          {stories.map((item, i) => <WindowChoice item={item} index={i} key={item.title} shade={shades[i]} setShade={value => setShades(previous => previous.map((old, index) => index === i ? value : old))} onOpen={target => openStory(i, target)} />)}
         </div>
         <p className="flight-hint">拖动舷窗遮光板，点击进入故事</p>
       </div>
@@ -135,7 +150,7 @@ export default function SkyWindows() {
     {story && <dialog className="flight-story" ref={modal} aria-labelledby="flight-story-title" onCancel={e => { e.preventDefault(); e.stopPropagation(); setSelected(null); }} onClose={e => e.stopPropagation()}>
       <header className="flight-story-top"><span>OUR JOURNEY <b>✈</b> {story.route}</span><button type="button" aria-label="关闭故事" onClick={() => setSelected(null)}>关闭 ×</button></header>
       <div className="flight-story-content">
-        <div className="flight-story-hero"><p>STORY 0{storyNumber} / 02 · {story.years}</p><FlightWindow image={story.cover} variant={selected ?? 0} /><h2 id="flight-story-title">{story.title}</h2><span>{story.subtitle}</span></div>
+        <div className="flight-story-hero"><p>STORY 0{storyNumber} / 02 · {story.years}</p><FlightWindow variant={selected ?? 0} /><h2 id="flight-story-title">{story.title}</h2><span>{story.subtitle}</span></div>
         <div className="flight-plan">
           <div className="flight-plan-heading"><span>FLIGHT PLAN</span><i>✈</i></div>
           {story.chapters.map((item, i) => <article className="flight-stop" key={item.caption}>
