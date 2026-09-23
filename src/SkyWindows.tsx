@@ -27,15 +27,51 @@ const stories: Story[] = [
   },
 ];
 
-function FlightWindow({ image, variant = 0 }: { image: string; variant?: number }) {
-  return <span className={`flight-window flight-window-${variant}`} aria-hidden="true">
+function FlightWindow({ image, variant = 0, shade = 0 }: { image: string; variant?: number; shade?: number }) {
+  return <span className={`flight-window flight-window-${variant}`} style={{ '--shade-height': `${10 + shade * 76}%` } as React.CSSProperties} aria-hidden="true">
     <span className="flight-window-recess"><span className="flight-window-glass">
       <img src={image} alt="" loading="lazy" />
       <span className="flight-window-sky" /><span className="flight-window-cloud flight-window-cloud-a" />
       <span className="flight-window-cloud flight-window-cloud-b" /><span className="flight-window-cloud flight-window-cloud-c" />
     </span></span>
-    <span className="flight-window-shade" /><span className="flight-window-handle" />
+    <span className="flight-window-shade"><span className="flight-window-handle" /></span>
   </span>;
+}
+
+function WindowChoice({ item, index, onOpen }: { item: Story; index: number; onOpen: (target: HTMLElement) => void }) {
+  const [shade, setShade] = useState(0);
+  const drag = useRef<{ pointerId: number; startY: number; startShade: number; height: number; moved: boolean } | null>(null);
+  const suppressClick = useRef(false);
+  const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const windowEl = (event.target as HTMLElement).closest('.flight-window') as HTMLElement | null;
+    if (!windowEl) return;
+    drag.current = { pointerId: event.pointerId, startY: event.clientY, startShade: shade, height: windowEl.clientHeight, moved: false };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const onPointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const current = drag.current;
+    if (!current || current.pointerId !== event.pointerId) return;
+    const distance = event.clientY - current.startY;
+    if (Math.abs(distance) > 5) current.moved = true;
+    if (current.moved) setShade(Math.max(0, Math.min(1, current.startShade + distance / (current.height * .75))));
+  };
+  const onPointerEnd = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const current = drag.current;
+    if (!current || current.pointerId !== event.pointerId) return;
+    if (current.moved) {
+      suppressClick.current = true;
+      window.setTimeout(() => { suppressClick.current = false; }, 0);
+    }
+    drag.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
+  return <button type="button" className="flight-window-choice" aria-label={`打开故事：${item.title}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd} onClick={event => {
+    if (suppressClick.current) { suppressClick.current = false; return; }
+    onOpen(event.currentTarget);
+  }}>
+    <FlightWindow image={item.cover} variant={index} shade={shade} />
+    <span className="flight-window-info"><small>0{index + 1} / 02 · {item.years}</small><strong>{item.title}</strong><em>{item.route}</em><span>打开这段故事 ↗</span></span>
+  </button>;
 }
 
 export default function SkyWindows() {
@@ -91,12 +127,9 @@ export default function SkyWindows() {
         <h2 id="flight-journey-title">窗外，是我们一起走过的路。</h2>
         <div className="flight-route" aria-hidden="true"><i /><span>✈</span><i /></div>
         <div className="flight-window-list">
-          {stories.map((item, i) => <button type="button" className="flight-window-choice" key={item.title} aria-label={`打开故事：${item.title}`} onClick={e => openStory(i, e.currentTarget)}>
-            <FlightWindow image={item.cover} variant={i} />
-            <span className="flight-window-info"><small>0{i + 1} / 02 · {item.years}</small><strong>{item.title}</strong><em>{item.route}</em><span>打开这段故事 ↗</span></span>
-          </button>)}
+          {stories.map((item, i) => <WindowChoice item={item} index={i} key={item.title} onOpen={target => openStory(i, target)} />)}
         </div>
-        <p className="flight-hint">轻触舷窗，看看另一边的我们</p>
+        <p className="flight-hint">拖动舷窗遮光板，点击进入故事</p>
       </div>
     </div>
     {story && <dialog className="flight-story" ref={modal} aria-labelledby="flight-story-title" onCancel={e => { e.preventDefault(); e.stopPropagation(); setSelected(null); }} onClose={e => e.stopPropagation()}>
