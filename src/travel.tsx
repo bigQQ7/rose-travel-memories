@@ -4,6 +4,7 @@ import HowItWorks, { type Step } from '../components/ui/how-it-works';
 import TripDetail from './TripDetail';
 import SkyWindows from './SkyWindows';
 import ScratchStamps from './ScratchStamps';
+import CabinetLetter from './CabinetLetter';
 import './base-travel.css';
 import './gallery-styles.css';
 
@@ -63,6 +64,7 @@ function Travel() {
       <SkyWindows />
       <ScratchStamps />
       <p className="travel-ending">下一程，也想和你一起。</p>
+      <CabinetLetter />
     </section>}
     {selected!==null&&view==='timeline'&&<TripDetail index={selected} trip={trips[selected]} onClose={()=>setSelected(null)} />}
   </dialog>;
