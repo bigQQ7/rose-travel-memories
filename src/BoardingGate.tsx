@@ -19,8 +19,8 @@ export default function BoardingGate({ onBoard }: { onBoard: () => void }) {
   const down = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (status === 'accepted' || e.button !== 0) return;
     const bounds = e.currentTarget.getBoundingClientRect();
-    gesture.current = { id: e.pointerId, x: e.clientX - position.x, y: e.clientY - position.y, left: bounds.left - position.x, top: bounds.top - position.y, width: bounds.width, height: bounds.height, lastX: e.clientX, travel: 0, touched: false };
-    setDragging(true); setStatus('ready');
+    gesture.current = { id: e.pointerId, x: e.clientX - position.x, y: e.clientY - position.y, left: bounds.left - position.x, top: bounds.top - position.y, width: bounds.width, height: bounds.height, lastX: e.clientX, travel: 0, touched: status === 'reading' };
+    setDragging(true); if (status !== 'reading') setStatus('ready');
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const move = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -31,20 +31,26 @@ export default function BoardingGate({ onBoard }: { onBoard: () => void }) {
     setPosition({ x, y, tilt: Math.max(-9, Math.min(9, dx * .35)) });
     const barcodeY = drag.top + y + drag.height * .91;
     const overlapX = drag.left + x + drag.width > slot.left + 12 && drag.left + x < slot.right - 12;
-    const aligned = overlapX && Math.abs(barcodeY - slot.top) < Math.max(25, drag.height * .2);
+    const alignedY = Math.abs(barcodeY - slot.top) < Math.max(25, drag.height * .2);
+    const aligned = overlapX && alignedY;
     if (aligned) {
       drag.touched = true; drag.travel += Math.abs(dx);
       setStatus('reading');
-      if (drag.travel > Math.min(115, slot.width * .34)) accept();
-    } else if (drag.touched) setStatus('error');
+    } else if (drag.touched) {
+      const fullyCleared = drag.left + x >= slot.right + 4 || drag.left + x + drag.width <= slot.left - 4;
+      if (alignedY && fullyCleared) accept();
+      else if (!alignedY) { drag.touched = false; setStatus('error'); }
+    }
     drag.lastX = e.clientX;
   };
   const up = (e: React.PointerEvent<HTMLButtonElement>) => {
     const drag = gesture.current;
     if (!drag || drag.id !== e.pointerId) return;
     gesture.current = null; setDragging(false);
-    setPosition({ x: 0, y: 0, tilt: -4 });
-    setStatus('error');
+    if (!drag.touched || e.type === 'pointercancel') {
+      setPosition({ x: 0, y: 0, tilt: -4 });
+      if (drag.travel > 4 || e.type === 'pointercancel') setStatus('error');
+    }
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
   };
   return <div className={`boarding-gate gate-${status}${dragging ? ' gate-dragging' : ''}`}>
