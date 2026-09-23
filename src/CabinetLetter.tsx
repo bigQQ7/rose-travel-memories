@@ -1,5 +1,6 @@
 import React, {useEffect,useRef,useState} from 'react';
 import './cabinet-letter.css';
+import './letter-unfold.css';
 
 export default function CabinetLetter(){
   const host=useRef<HTMLDivElement>(null),action=useRef<()=>void>(()=>{}),letter=useRef<HTMLDialogElement>(null);
@@ -17,8 +18,8 @@ export default function CabinetLetter(){
         scene.add(new T.HemisphereLight(0xfff8e6,0x727582,2.8));const sun=new T.DirectionalLight(0xffe8cb,3);sun.position.set(3,6,5);scene.add(sun);const fill=new T.DirectionalLight(0xd2dfff,1.5);fill.position.set(-4,3,-2);scene.add(fill);
         const pivot=new T.Group();scene.add(pivot);
         const envelope=new T.Group();scene.add(envelope);envelope.visible=false;
-        const paper=new T.Mesh(new T.BoxGeometry(1.05,.68,.045),new T.MeshStandardMaterial({color:0xfff1d5,roughness:.85}));envelope.add(paper);
-        const flapShape=new T.Shape();flapShape.moveTo(-.525,.34);flapShape.lineTo(.525,.34);flapShape.lineTo(0,-.05);flapShape.closePath();const flap=new T.Mesh(new T.ShapeGeometry(flapShape),new T.MeshStandardMaterial({color:0xeedabc,side:T.DoubleSide}));flap.position.z=.028;envelope.add(flap);
+        const paper=new T.Mesh(new T.BoxGeometry(1.05,.68,.045),new T.MeshStandardMaterial({color:0x9b211d,roughness:.85}));envelope.add(paper);
+        const flapShape=new T.Shape();flapShape.moveTo(-.525,.34);flapShape.lineTo(.525,.34);flapShape.lineTo(0,-.05);flapShape.closePath();const flap=new T.Mesh(new T.ShapeGeometry(flapShape),new T.MeshStandardMaterial({color:0xbb342a,side:T.DoubleSide}));flap.position.z=.028;envelope.add(flap);
         const seal=new T.Mesh(new T.CylinderGeometry(.075,.075,.02,32),new T.MeshStandardMaterial({color:0x9c4846,roughness:.65}));seal.rotation.x=Math.PI/2;seal.position.set(0,-.05,.05);envelope.add(seal);
         const shadowCanvas=document.createElement('canvas');shadowCanvas.width=128;shadowCanvas.height=128;const ctx=shadowCanvas.getContext('2d')!,gradient=ctx.createRadialGradient(64,64,6,64,64,60);gradient.addColorStop(0,'#453a3060');gradient.addColorStop(1,'#453a3000');ctx.fillStyle=gradient;ctx.fillRect(0,0,128,128);const shadow=new T.Mesh(new T.PlaneGeometry(4,3),new T.MeshBasicMaterial({map:new T.CanvasTexture(shadowCanvas),transparent:true,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=-.01;scene.add(shadow);
         let phase='loading',start=0,raf=0,visible=true,front=.65,baseRotation=0;
@@ -55,6 +56,13 @@ export default function CabinetLetter(){
     <div className="cabinet-heading"><p>最后，还有一封信。</p><h2 id="cabinet-title">有些话，想亲手交给你。</h2></div>
     <div ref={host} className="cabinet-scene" data-state={status} aria-label="装着一封信的三维柜子" />
     <div className="cabinet-action" aria-live="polite">{status==='loading'?<p>正在把小柜子搬过来…</p>:status==='error'?<button onClick={()=>{setStatus('loading');setRetry(v=>v+1);}}>重新加载柜子</button>:<button onClick={()=>action.current()} disabled={status==='shaking'||status==='ejecting'}>{status==='ready'?'轻轻点一下柜子':status==='shaking'?'好像有什么藏在里面…':status==='ejecting'?'是给你的信。':'拆开这封信'}</button>}</div>
-    <dialog ref={letter} className="cabinet-letter-dialog" onCancel={e=>{e.preventDefault();e.stopPropagation();letter.current?.close();}} onClick={e=>{if(e.target===e.currentTarget)letter.current?.close();}} aria-labelledby="cabinet-letter-title"><article className="cabinet-letter-paper"><button aria-label="收起信" className="cabinet-letter-close" onClick={()=>letter.current?.close()}>×</button><p className="letter-dateline">写给一起走过这些路的你</p><h3 id="cabinet-letter-title">亲爱的你：</h3><p>翻到这里，我们又把那些日子走了一遍。原来最舍不得的，不只是某一座城市、某一次日落，而是每一张照片里，都有我们。</p><p>谢谢你陪我出发，也陪我把普通的小事变成了回忆。以后还想和你一起看海、看雪，走进没去过的街道，也在熟悉的地方慢慢散步。</p><p>这一页写到这里，下一程，我们一起。</p><p className="letter-signoff">把往后的好天气，也留给你。<br/>♡</p></article></dialog>
+    <dialog ref={letter} className="cabinet-letter-dialog" onCancel={e=>{e.preventDefault();e.stopPropagation();letter.current?.close();}} onClick={e=>{if(e.target===e.currentTarget)letter.current?.close();}} aria-labelledby="cabinet-letter-title">
+      <button aria-label="收起信" className="cabinet-letter-close" onClick={()=>letter.current?.close()}>×</button>
+      <div className="opened-envelope">
+        <div className="envelope-back" aria-hidden="true"/><div className="envelope-open-flap" aria-hidden="true"/>
+        <article className="cabinet-letter-paper"><span className="letter-postmark" aria-hidden="true">♡<small>WITH LOVE</small></span><span className="letter-from">From: 我<br/>To: 亲爱的你</span><p className="letter-dateline">写给一起走过这些路的你</p><h3 id="cabinet-letter-title">亲爱的你：</h3><p>翻到这里，我们又把那些日子走了一遍。原来最舍不得的，不只是某一座城市、某一次日落，而是每一张照片里，都有我们。</p><p>谢谢你陪我出发，也陪我把普通的小事变成了回忆。以后还想和你一起看海、看雪，走进没去过的街道，也在熟悉的地方慢慢散步。</p><p>这一页写到这里，下一程，我们一起。</p><p className="letter-signoff">把往后的好天气，也留给你。<br/>♡</p></article>
+        <div className="envelope-front" aria-hidden="true"><div className="envelope-left"/><div className="envelope-right"/><div className="envelope-bottom"/><div className="letter-photo-stamp"><img src="/assets/hangzhou-3.png" alt=""/></div></div>
+      </div>
+    </dialog>
   </section>;
 }
