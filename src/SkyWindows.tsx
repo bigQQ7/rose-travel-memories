@@ -27,24 +27,29 @@ const stories: Story[] = [
   },
 ];
 
-function FlightWindow({ variant = 0, shade = 0 }: { variant?: number; shade?: number }) {
+function SkyScene({ variant = 0 }: { variant?: number }) {
   const cloudId = React.useId().replace(/:/g, '');
+  return <><span className="flight-window-sky" />
+    <svg className="flight-cloudscape" viewBox="0 0 200 280" preserveAspectRatio="none">
+      <defs>
+        <filter id={`${cloudId}-cloud`} x="-30%" y="-30%" width="160%" height="160%">
+          <feTurbulence type="fractalNoise" baseFrequency=".012 .018" numOctaves="3" seed={8 + variant * 4} />
+          <feDiffuseLighting lightingColor="#f5fbff" surfaceScale="7" diffuseConstant="1.1"><feDistantLight azimuth="220" elevation="48" /></feDiffuseLighting>
+          <feComponentTransfer><feFuncR type="linear" slope=".4" intercept=".56" /><feFuncG type="linear" slope=".36" intercept=".62" /><feFuncB type="linear" slope=".3" intercept=".69" /></feComponentTransfer>
+          <feGaussianBlur stdDeviation=".8" />
+        </filter>
+        <linearGradient id={`${cloudId}-fade`} x2="0" y2="1"><stop offset="0" stopColor="white" stopOpacity="0" /><stop offset=".18" stopColor="white" stopOpacity=".95" /><stop offset="1" stopColor="white" /></linearGradient>
+        <mask id={`${cloudId}-mask`}><rect x="-50" y="112" width="300" height="190" fill={`url(#${cloudId}-fade)`} /></mask>
+      </defs>
+      <rect x="-50" y="112" width="300" height="190" filter={`url(#${cloudId}-cloud)`} mask={`url(#${cloudId}-mask)`} opacity=".8" />
+    </svg>
+  </>;
+}
+
+function FlightWindow({ variant = 0, shade = 0 }: { variant?: number; shade?: number }) {
   return <span className={`flight-window flight-window-${variant}`} style={{ '--shade-offset': `${-92 * (1 - shade)}%` } as React.CSSProperties} aria-hidden="true">
     <span className="flight-window-recess"><span className="flight-window-glass">
-      <span className="flight-window-sky" />
-      <svg className="flight-cloudscape" viewBox="0 0 200 280" preserveAspectRatio="none">
-        <defs>
-          <filter id={`${cloudId}-cloud`} x="-30%" y="-30%" width="160%" height="160%">
-            <feTurbulence type="fractalNoise" baseFrequency=".012 .018" numOctaves="3" seed={8 + variant * 4} />
-            <feDiffuseLighting lightingColor="#f5fbff" surfaceScale="7" diffuseConstant="1.1"><feDistantLight azimuth="220" elevation="48" /></feDiffuseLighting>
-            <feComponentTransfer><feFuncR type="linear" slope=".4" intercept=".56" /><feFuncG type="linear" slope=".36" intercept=".62" /><feFuncB type="linear" slope=".3" intercept=".69" /></feComponentTransfer>
-            <feGaussianBlur stdDeviation=".8" />
-          </filter>
-          <linearGradient id={`${cloudId}-fade`} x2="0" y2="1"><stop offset="0" stopColor="white" stopOpacity="0" /><stop offset=".18" stopColor="white" stopOpacity=".95" /><stop offset="1" stopColor="white" /></linearGradient>
-          <mask id={`${cloudId}-mask`}><rect x="-50" y="112" width="300" height="190" fill={`url(#${cloudId}-fade)`} /></mask>
-        </defs>
-        <rect x="-50" y="112" width="300" height="190" filter={`url(#${cloudId}-cloud)`} mask={`url(#${cloudId}-mask)`} opacity=".8" />
-      </svg>
+      <SkyScene variant={variant} />
       <span className="flight-window-shade"><span className="flight-window-handle" /></span>
     </span></span>
   </span>;
@@ -100,6 +105,7 @@ export default function SkyWindows() {
   const modal = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
+  const [zoomOrigin, setZoomOrigin] = useState({ top: 0, right: 0, bottom: 0, left: 0 });
   const [shades, setShades] = useState([1, 1]);
   useEffect(() => {
     const root = section.current;
@@ -130,7 +136,13 @@ export default function SkyWindows() {
     window.addEventListener('travel:reset', reset);
     return () => { window.removeEventListener('travel:reset', reset); if (el.open) el.close(); opener.current?.focus({ preventScroll: true }); };
   }, [selected]);
-  const openStory = (index: number, target: HTMLElement) => { opener.current = target; setSelected(index); };
+  const openStory = (index: number, target: HTMLElement) => {
+    const glass = target.querySelector('.flight-window-glass') ?? target;
+    const bounds = glass.getBoundingClientRect();
+    setZoomOrigin({ top: bounds.top, right: window.innerWidth - bounds.right, bottom: window.innerHeight - bounds.bottom, left: bounds.left });
+    opener.current = target;
+    setSelected(index);
+  };
   const story = selected === null ? null : stories[selected];
   const storyNumber = selected === null ? 0 : selected + 1;
   return <section className="flight-journey" ref={section} style={{ '--cabin-dark': Math.pow(Math.min(...shades), 1.5) } as React.CSSProperties} aria-labelledby="flight-journey-title">
@@ -154,10 +166,11 @@ export default function SkyWindows() {
         <p className="flight-hint">向上拉开一扇舷窗，进入对应的故事</p>
       </div>
     </div>
-    {story && <dialog className="flight-story" ref={modal} aria-labelledby="flight-story-title" onCancel={e => { e.preventDefault(); e.stopPropagation(); setSelected(null); }} onClose={e => e.stopPropagation()}>
+    {story && <dialog className="flight-story" ref={modal} style={{ '--portal-top': `${zoomOrigin.top}px`, '--portal-right': `${zoomOrigin.right}px`, '--portal-bottom': `${zoomOrigin.bottom}px`, '--portal-left': `${zoomOrigin.left}px` } as React.CSSProperties} aria-labelledby="flight-story-title" onCancel={e => { e.preventDefault(); e.stopPropagation(); setSelected(null); }} onClose={e => e.stopPropagation()}>
+      <div className="flight-story-portal" aria-hidden="true"><SkyScene variant={selected ?? 0} /></div>
       <header className="flight-story-top"><span>OUR JOURNEY <b>✈</b> {story.route}</span><button type="button" aria-label="关闭故事" onClick={() => setSelected(null)}>关闭 ×</button></header>
       <div className="flight-story-content">
-        <div className="flight-story-hero"><p>STORY 0{storyNumber} / 02 · {story.years}</p><FlightWindow variant={selected ?? 0} /><h2 id="flight-story-title">{story.title}</h2><span>{story.subtitle}</span></div>
+        <div className="flight-story-hero"><SkyScene variant={selected ?? 0} /><div className="flight-story-hero-copy"><p>STORY 0{storyNumber} / 02 · {story.years}</p><h2 id="flight-story-title">{story.title}</h2><span>{story.subtitle}</span><small>向下滚动，继续这段旅程 ↓</small></div></div>
         <div className="flight-plan">
           <div className="flight-plan-heading"><span>FLIGHT PLAN</span><i>✈</i></div>
           {story.chapters.map((item, i) => <article className="flight-stop" key={item.caption}>
