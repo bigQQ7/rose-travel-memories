@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import HowItWorks, { type Step } from '../components/ui/how-it-works';
 import TripDetail from './TripDetail';
 import SkyWindows from './SkyWindows';
+import ScratchStamps from './ScratchStamps';
 import './base-travel.css';
 import './gallery-styles.css';
 
@@ -60,6 +61,7 @@ function Travel() {
       <div className="travel-intro"><p className="travel-eyebrow">2021 — 2025</p><h2 id="travel-timeline-title" ref={heading} tabIndex={-1}>我们一起走过的地方</h2><p>从杭州出发，把沿途的回忆一页页收好。</p></div>
       <HowItWorks features={trips} className="travel-cards" onSelect={setSelected} />
       <SkyWindows />
+      <ScratchStamps />
       <p className="travel-ending">下一程，也想和你一起。</p>
     </section>}
     {selected!==null&&view==='timeline'&&<TripDetail index={selected} trip={trips[selected]} onClose={()=>setSelected(null)} />}
