@@ -1,3 +1,4 @@
+@font-face{font-family:'Alimama FangYuanTi VF';src:url('./assets/AlimamaFangYuanTiVF-Thin.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap}
 .memory-puzzle{position:relative;background:#fff;overflow:hidden;padding:36px 0 44px;text-align:center}
 .memory-puzzle-art{display:block;width:min(100%,1230px);height:auto;margin:0 auto;overflow:visible}
 .memory-puzzle-outline path{fill:none;stroke:#ece6ec;stroke-width:1.5}
