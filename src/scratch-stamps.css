@@ -11,3 +11,10 @@
 @media(max-width:650px){.memory-post{margin:25px 8px 0;padding:65px 24px 40px;min-height:760px}.stamp-collection{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:35px 28px;margin:55px auto;max-width:370px}.stamp-paper{padding:13px}.stamp-large{padding:24px}.stamp-caption{font-size:10px}.post-footnote{font-size:10px;letter-spacing:1px}.stamp-dialog{padding:14px}.stamp-message p{padding:0 15px}.stamp-large{width:min(300px,68vw)}}
 @media(prefers-reduced-motion:reduce){.stamp-choice,.stamp-collection,.stamp-scratch{transition:none!important}}
 .stamp-dialog .stamp-close{padding:0;display:grid;place-items:center;line-height:1}
+
+/* Blend the stamp section into the site's pink and lilac palette. */
+.memory-post{background:linear-gradient(145deg,#f4e7f1 0%,#e9e1f3 55%,#f8eaf1 100%);color:#624d65}
+.stamp-paper{background:#fff8fd;filter:drop-shadow(0 12px 13px #76547525)}
+.stamp-paper:before,.stamp-paper:after{background:radial-gradient(circle at 0 10px,#eee3f1 4.5px,transparent 5px) 0 0/9px 20px repeat-y}
+.stamp-dialog{background:#f1e6f256;color:#5b4560}.stamp-dialog::backdrop{background:#57465d69}
+.stamp-dialog .stamp-close{background:#fff6fc!important;color:#674e6c;border-color:#ad8eaa66}

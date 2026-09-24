@@ -13,6 +13,10 @@
 .holo-card:focus-visible .holo-lift{transform:translateY(-9px)}
 .holo-card.is-flipped .holo-shine{opacity:0}
 .holo-front-image{padding:0;border:0;background:#fff2f9;box-shadow:none}
+
+.holo-cards{background:linear-gradient(180deg,#fcf4fb 0%,#f2eaf9 100%)}
+.holo-cards:before{background-image:radial-gradient(#d8b9d5 1px,transparent 1px)}
+.holo-kicker{color:#986a93}.holo-hint{color:#806b83}
 .holo-front-image .card-art{object-fit:contain}
 @media(prefers-reduced-motion:reduce){.holo-lift,.holo-card:hover .holo-lift,.holo-card:focus-visible .holo-lift{transform:none;transition:none}.holo-shine{transition:none}}
 
