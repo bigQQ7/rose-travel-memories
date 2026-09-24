@@ -12,8 +12,12 @@
 @media(hover:hover) and (pointer:fine){.holo-card:hover .holo-lift{transform:translateY(-9px) rotateX(var(--rx)) rotateY(var(--ry)) scale(1.018);filter:drop-shadow(0 22px 15px rgba(85,44,67,.2));transition:transform .16s ease-out,filter .35s ease}.holo-card:hover .holo-shine{opacity:.85}}
 .holo-card:focus-visible .holo-lift{transform:translateY(-9px)}
 .holo-card.is-flipped .holo-shine{opacity:0}
+.holo-front-image{padding:0;border:0;background:#fff2f9;box-shadow:none}
+.holo-front-image .card-art{object-fit:contain}
 @media(prefers-reduced-motion:reduce){.holo-lift,.holo-card:hover .holo-lift,.holo-card:focus-visible .holo-lift{transform:none;transition:none}.holo-shine{transition:none}}
 
 /* Keep the stationary button transparent when the card lifts above it. */
 .travel-dialog .holo-card,.travel-dialog .holo-card:hover,.travel-dialog .holo-card:active,.travel-dialog .holo-card:focus{background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important}
 .holo-card::before,.holo-card::after{display:none!important}
+.holo-front-image{padding:0;border:0;background:#fff2f9;box-shadow:none}
+.holo-front-image .card-art{object-fit:contain}
