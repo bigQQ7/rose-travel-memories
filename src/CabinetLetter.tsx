@@ -53,7 +53,7 @@ export default function CabinetLetter(){
             material.onBeforeCompile=(shader:any)=>{
               shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
                 float originalLightness = max(max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
-                diffuseColor.rgb = vec3(1.0, 0.47, 0.67) * originalLightness;`);
+                diffuseColor.rgb = vec3(1.0, 0.14, 0.39) * originalLightness;`);
             };
             material.needsUpdate=true;
           }

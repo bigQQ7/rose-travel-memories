@@ -15,3 +15,15 @@
 @keyframes envelope-flap-open{from{transform:rotateX(-170deg)}to{transform:rotateX(0)}}@keyframes paper-slide-out{from{transform:translateY(180px);opacity:0}35%{opacity:1}to{transform:translateY(0);opacity:1}}@keyframes envelope-enter{from{opacity:0;transform:translateY(30px) scale(.94)}to{opacity:1;transform:none}}
 @media(max-width:600px){.cabinet-letter-dialog{padding:45px 12px 25px}.opened-envelope{padding:55px 15px 155px;margin-top:20px}.cabinet-letter-paper{padding:90px 24px 70px}.cabinet-letter-paper h3{font-size:36px;margin:20px 0 28px}.cabinet-letter-paper p{font-size:16px;line-height:1.9}.letter-postmark{width:48px;height:62px;left:14px;top:16px;font-size:24px}.letter-from{font-size:10px;padding:12px;right:-3px;top:8px}.envelope-front{height:240px}.letter-photo-stamp{width:105px;height:110px;left:calc(50% - 52px);top:72px}.cabinet-letter-paper .letter-dateline{font-size:12px;letter-spacing:1px}}
 @media(prefers-reduced-motion:reduce){.cabinet-letter-dialog[open] .opened-envelope,.cabinet-letter-dialog[open] .envelope-open-flap,.cabinet-letter-dialog[open] .cabinet-letter-paper{animation:none}}
+
+/* Match the opened letter to the pink envelope beside the mailbox. */
+.cabinet-letter-dialog{background:#fff;color:#a94270}
+.cabinet-letter-paper{background:#fff}
+.cabinet-letter-paper h3,.cabinet-letter-paper .letter-dateline{color:#b34777}
+.letter-postmark{border-color:#dc80a6}
+.letter-from{background:#fff8fb}
+.envelope-back{background:#db6291}
+.envelope-open-flap{background:linear-gradient(135deg,#ee85ad,#d95a8d)}
+.envelope-left,.envelope-right{background:linear-gradient(130deg,#f48db5,#dc6698)}
+.envelope-bottom{background:linear-gradient(130deg,#e96f9e,#d65387)}
+.cabinet-letter-dialog .cabinet-letter-close{background:#fff7fb!important;border-color:#d77a9c70;color:#b34777}
