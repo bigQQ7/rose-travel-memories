@@ -5,7 +5,7 @@ const memories = [
   { color: '#F9DCF7', prompt: '我们最常吃的东西', caption: '火锅肯定是第一名', sticker: './assets/puzzle-food-1.png', x: -100, y: -70, angle: -7 },
   { color: '#FCCAFB', prompt: '一见钟情的东西', caption: '螺丝粉永远的神', sticker: './assets/puzzle-food-2.png', x: -10, y: -100, angle: -4 },
   { color: '#DECAFE', prompt: '新疆人骨子里的基因', caption: '炒米粉我要中辣', sticker: './assets/puzzle-food-3.png', x: 120, y: -90, angle: 8 },
-  { color: '#FFEEB2', prompt: '心竟宠妃', caption: '麻油鱼还想吃', sticker: './assets/puzzle-food-4.png', x: -140, y: 100, angle: 0 },
+  { color: '#FFEEB2', prompt: '新晋宠妃', caption: '麻油鱼还想吃', sticker: './assets/puzzle-food-4.png', x: -140, y: 100, angle: 0 },
   { color: '#FEC7E0', prompt: '百搭伴侣', caption: '茶百道永远的神', sticker: './assets/puzzle-food-5.png', x: 0, y: 100, angle: -6 },
   { color: '#FFD3D3', prompt: '超难吃的东西', caption: '油茶好难喝', sticker: './assets/puzzle-food-6.png', x: 135, y: 100, angle: 8 },
 ];
