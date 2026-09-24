@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './sky-windows.css';
 import BoardingGate from './BoardingGate';
+import AccordionGallery from '../components/AccordionGallery';
+import { tripDetails } from './trip-details';
 
 type Story = {
   years: string; route: string; title: string; subtitle: string; cover: string;
-  chapters: { image: string; caption: string; text: string }[];
+  chapters: { image: string; caption: string; text: string; album?: number }[];
 };
 
 const stories: Story[] = [
@@ -22,7 +24,6 @@ const stories: Story[] = [
     subtitle: '同一个地方，留下两次不一样的我们。', cover: './assets/gallery-4-2.png',
     chapters: [
       { image: './assets/gallery-4-2.png', caption: '赛里木湖 · 2024.1', text: '第一次走进赛里木湖的冬天，雪很亮，湖很蓝。我们在湖边张开手臂，像是想把眼前的风景都抱住。' },
-      { image: './assets/gallery-4-4.png', caption: '路上的小事', text: '路边一起吃的饭、临时起意留下的照片，让远行不只是远处的风景，也是并肩度过的每一个片刻。' },
       { image: './assets/gallery-5-1.jpg', caption: '再见赛里木湖 · 2025.2', text: '一年后又回到这里。熟悉的雪山还在，我们也有了新的照片。真希望以后还能一起回到喜欢的地方，继续写下一页。' },
     ],
   },
@@ -102,6 +103,8 @@ function WindowChoice({ item, index, shade, setShade, onOpen }: { item: Story; i
 }
 
 export default function SkyWindows() {
+  const [mobile,setMobile]=useState(()=>matchMedia('(max-width:520px)').matches);
+  useEffect(()=>{const query=matchMedia('(max-width:520px)');const change=()=>setMobile(query.matches);query.addEventListener('change',change);return()=>query.removeEventListener('change',change);},[]);
   const section = useRef<HTMLElement>(null);
   const modal = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
@@ -150,7 +153,7 @@ export default function SkyWindows() {
           <div className="flight-plan-heading"><span>FLIGHT PLAN</span><i>✈</i></div>
           {story.chapters.map((item, i) => <article className="flight-stop" key={item.caption}>
             <div className="flight-stop-index"><small>0{i + 1}</small><i /></div>
-            <div className="flight-stop-body"><p className="flight-stop-date">{item.caption}</p><p className="flight-stop-text">{item.text}</p><figure><img src={item.image} alt={item.caption} loading={i === 0 ? 'eager' : 'lazy'} /><figcaption>{item.caption}</figcaption></figure></div>
+            <div className="flight-stop-body"><p className="flight-stop-date">{item.caption}</p><p className="flight-stop-text">{item.text}</p><p className="trip-gallery-help">{mobile?'轻触照片，展开回忆':'移动鼠标到照片上，展开回忆'}</p><AccordionGallery key={`${selected}-${i}-${mobile}`} items={tripDetails[(selected===0?0:3)+i].photos} defaultIndex={2} expandRatio={0.52} trigger="hover" orientation={mobile?'vertical':'horizontal'} grayscale={false} height={420}/></div>
           </article>)}
           <div className="flight-plan-ending"><i>↓</i><p>谢谢你，陪我走过这一程。</p><button type="button" onClick={() => setSelected(null)}>返回舷窗 ↑</button></div>
         </div>
