@@ -51,7 +51,7 @@ function SkyScene({ variant = 0 }: { variant?: number }) {
 function FlightWindow({ variant = 0, shade = 0 }: { variant?: number; shade?: number }) {
   return <span className={`flight-window flight-window-${variant}`} style={{ '--shade-offset': `${-92 * (1 - shade)}%` } as React.CSSProperties} aria-hidden="true">
     <span className="flight-window-recess"><span className="flight-window-glass">
-      <SkyScene variant={variant} />
+      <video className="flight-window-video" src={`./assets/window-view-${variant + 1}.mp4`} autoPlay muted loop playsInline preload="auto" aria-hidden="true" />
       <span className="flight-window-shade"><span className="flight-window-handle" /></span>
     </span></span>
   </span>;

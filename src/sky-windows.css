@@ -20,6 +20,7 @@
 .flight-window-recess{display:block;box-sizing:border-box;width:100%;height:100%;padding:8px 7px 9px;border:1px solid #b4b0a6;border-radius:var(--window-shape);background:linear-gradient(125deg,#aaa69c,#d9d6cd 16%,#f7f5ee 48%,#faf9f3 75%,#d6d2c8);box-shadow:inset 1px 4px 5px #716d626b,inset -1px -2px 2px #fff,0 2px 2px #fff}
 .flight-window-glass{position:relative;display:block;isolation:isolate;overflow:hidden;width:100%;height:100%;border-radius:var(--window-shape);background:#a9d6f5;border:1px solid #ecebe4;box-shadow:0 0 0 1px #aaa99e}
 .flight-window-glass:after{content:"";position:absolute;z-index:5;inset:0;border-radius:inherit;box-shadow:inset 2px 3px 5px #403d3445,inset -1px -1px 2px #fff9;pointer-events:none}
+.flight-window-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;background:#91c9eb}
 .flight-window-sky{position:absolute;inset:0;background:linear-gradient(#73b8ee 0%,#addafb 46%,#dfedf2 48%,#c0d5df 62%,#f3f8fa 100%)}
 .flight-cloudscape{position:absolute;inset:0;width:120%;height:100%;left:-10%;animation:flight-cloud-drift 25s ease-in-out infinite alternate}
 .flight-window-shade{position:absolute;z-index:3;box-sizing:border-box;inset:0;width:100%;height:100%;border-radius:0 0 45% 45%/0 0 12% 12%;background:linear-gradient(90deg,#b4b0a5 0%,#e6e2d8 7%,#f0ede4 25%,#f3f0e8 68%,#d8d4c9 94%,#a7a296 100%);box-shadow:inset 0 -2px 2px #fffc,inset 0 -6px 8px #aaa49566,0 3px 5px #514c4555;transform:translateY(var(--shade-offset,-92%));will-change:transform}
