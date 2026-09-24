@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import HowItWorks, { type Step } from '../components/ui/how-it-works';
-import TripDetail from './TripDetail';
+import type { Step } from '../components/ui/how-it-works';
+import AccordionGallery from '../components/AccordionGallery';
+import { tripDetails } from './trip-details';
 import SkyWindows from './SkyWindows';
 import ScratchStamps from './ScratchStamps';
 import CabinetLetter from './CabinetLetter';
@@ -19,16 +20,17 @@ function Travel() {
   const [view, setView] = useState<'closed' | 'question' | 'timeline'>('closed');
   const [answer, setAnswer] = useState('');
   const [hint, setHint] = useState('');
-  const [selected, setSelected] = useState<number | null>(null);
+  const [mobile, setMobile] = useState(()=>matchMedia('(max-width:520px)').matches);
   const dialog = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     const open = () => { setAnswer(''); setHint(''); setView('question'); };
-    const reset = () => { setSelected(null); setView('closed'); };
+    const reset = () => { setView('closed'); };
+    const query=matchMedia('(max-width:520px)');const change=()=>setMobile(query.matches);query.addEventListener('change',change);
     window.addEventListener('travel:open', open);
     window.addEventListener('travel:reset', reset);
-    return () => { window.removeEventListener('travel:open', open); window.removeEventListener('travel:reset', reset); };
+    return () => { query.removeEventListener('change',change);window.removeEventListener('travel:open', open); window.removeEventListener('travel:reset', reset); };
   }, []);
   useEffect(() => {
     const el = dialog.current;
@@ -57,16 +59,20 @@ function Travel() {
         <button className="travel-submit" type="submit">打开我们的回忆</button>
       </form>
     </div>}
-    {view === 'timeline' && <section className="travel-timeline" aria-label="我们的旅行时间轴">
+    {view === 'timeline' && <section className="travel-timeline" aria-label="我们的旅行相册">
       <header className="travel-top"><span>我们的旅行手记</span><button onClick={() => setView('closed')}>回到蜡烛</button></header>
-      <div className="travel-intro"><p className="travel-eyebrow">2021 — 2025</p><h2 id="travel-timeline-title" ref={heading} tabIndex={-1}>我们一起走过的地方</h2><p>从杭州出发，把沿途的回忆一页页收好。</p></div>
-      <HowItWorks features={trips} className="travel-cards" onSelect={setSelected} />
+      <h2 id="travel-timeline-title" ref={heading} tabIndex={-1} className="album-accessible-title">我们的旅行相册</h2>
+      <div className="travel-albums">{trips.map((trip,index)=><section className="travel-album" key={trip.date} aria-labelledby={`album-${index}`}>
+        <div className="album-heading"><div><p>{trip.date}</p><h3 id={`album-${index}`}>{trip.title}</h3></div><span>{tripDetails[index].photos.length} 张照片</span></div>
+        <p className="trip-gallery-help">{mobile?'轻触照片，展开回忆':'移动鼠标到照片上，展开回忆'}</p>
+        <AccordionGallery key={`${index}-${mobile}`} items={tripDetails[index].photos} defaultIndex={2} expandRatio={0.52} trigger="hover" orientation={mobile?'vertical':'horizontal'} grayscale={false} height={420}/>
+        <div className="trip-feeling album-feeling">{tripDetails[index].feeling.map((p,i)=><p key={i}>{p}</p>)}</div>
+      </section>)}</div>
       <SkyWindows />
       <ScratchStamps />
       <p className="travel-ending">下一程，也想和你一起。</p>
       <CabinetLetter />
     </section>}
-    {selected!==null&&view==='timeline'&&<TripDetail index={selected} trip={trips[selected]} onClose={()=>setSelected(null)} />}
   </dialog>;
 }
 const container = document.getElementById('travel-root');
