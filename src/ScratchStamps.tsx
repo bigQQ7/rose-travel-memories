@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import './scratch-stamps.css';
 
 const stamps = [
-  { title: '把初夏寄给你', place: 'HANGZHOU', date: '05 / 2021', color: '#a8b77c', image: 'stamp-photo-1.png', note: '第一次一起出发，连走过的普通街道都变得特别。以后再想起杭州，先想起的总是身边的你。' },
-  { title: '热闹里有我们', place: 'CHENGDU', date: '09 / 2021', color: '#c18b68', image: 'stamp-photo-2.png', note: '把笑声留在街头，把快乐藏进合照。和你在一起，吃什么、去哪里，都能变成值得记很久的小事。' },
-  { title: '海风替我说', place: 'SUMMER MAIL', date: '06 / 2023', color: '#819da1', image: 'stamp-photo-3.png', note: '想把那天的海风和日落一起寄给你。照片装不下的，是我们一路上的笑声，还有下次再出发的期待。' },
-  { title: '冬天也很温柔', place: 'WINTER POST', date: '02 / 2025', color: '#737766', image: 'stamp-photo-4.png', note: '雪山很远，身边的你很近。愿我们以后还会一起看很多场雪，也一起把平常的日子过得亮晶晶。' }
+  { title: '创口贴上的心电图', place: 'HANGZHOU', date: '05 / 2021', color: '#a8b77c', image: 'stamp-photo-1.png', note: '其实在翻到这张照片之前我好像已经忘记这件事儿了，依稀记得好像是我们在广场那里我手被划了一下然后一起去买创口贴结果突发奇想整了个心电图哈哈哈哈' },
+  { title: '那年操场上的雪', place: 'CHENGDU', date: '09 / 2021', color: '#c18b68', image: 'stamp-photo-2.png', note: '17年底某一个雪天，好像是班级在操场打雪仗玩雪，好像这是我对高中生活为数不多的快乐记忆' },
+  { title: '每次跨年都去多客士', place: 'SUMMER MAIL', date: '06 / 2023', color: '#819da1', image: 'stamp-photo-3.png', note: '每次跨年都回去多客士吃饭！' },
+  { title: '在院子里跨年', place: 'WINTER POST', date: '02 / 2025', color: '#737766', image: 'stamp-photo-4.png', note: '疫情刚放开，难得能赶在新年前回家，但是刚刚放开我们也没去别的地方，就在院子里跨年啦！' }
 ];
 
 function ScratchLayer({ color, saved, done, onSave, onReveal }: { color: string; saved?: string; done: boolean; onSave: (s:string)=>void; onReveal: ()=>void }) {
