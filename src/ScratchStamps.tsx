@@ -29,7 +29,7 @@ function ScratchLayer({ color, saved, done, onSave, onReveal }: { color: string;
     if(!last.current || completed.current)return;
     const c=canvas.current!,r=c.getBoundingClientRect(),ctx=c.getContext('2d')!;
     const p={x:(e.clientX-r.left)*600/r.width,y:(e.clientY-r.top)*760/r.height};
-    ctx.globalCompositeOperation='destination-out';ctx.lineWidth=64;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(last.current.x,last.current.y);ctx.lineTo(p.x,p.y);ctx.stroke();last.current=p;
+    ctx.globalCompositeOperation='destination-out';ctx.lineWidth=128;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(last.current.x,last.current.y);ctx.lineTo(p.x,p.y);ctx.stroke();last.current=p;
   }
   function finish() {
     if(!last.current)return;last.current=null;
