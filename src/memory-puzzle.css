@@ -1,0 +1,20 @@
+.memory-puzzle{position:relative;background:#fff;overflow:hidden;padding:36px 0 44px;text-align:center}
+.memory-puzzle-art{display:block;width:min(100%,1230px);height:auto;margin:0 auto;overflow:visible}
+.memory-puzzle-outline path{fill:none;stroke:#ece6ec;stroke-width:1.5}
+.memory-puzzle-piece{transform:translate(var(--px),var(--py)) rotate(var(--angle));will-change:transform}
+.memory-puzzle-depth{filter:brightness(.87);opacity:.5}
+.memory-puzzle-words{opacity:0;fill:#654f68;font-family:'PingFang SC','Microsoft YaHei',sans-serif}
+.memory-puzzle-copy{font-size:17px;letter-spacing:.2px}
+.memory-puzzle-quote{font-family:Georgia,serif;font-size:34px;opacity:.45}
+.memory-puzzle-note{font-size:12px;letter-spacing:1px;opacity:.78}
+.memory-puzzle-number{font-size:11px;opacity:.45}
+.is-playing .memory-puzzle-piece{animation:puzzle-fit 1.15s cubic-bezier(.22,1,.36,1) var(--delay) both}
+.is-playing .memory-puzzle-words{animation:puzzle-words .6s ease calc(var(--delay) + .8s) both}
+.memory-puzzle-replay{border:0;background:transparent;color:#9a789a;font:inherit;font-size:13px;letter-spacing:2px;cursor:pointer;padding:12px 20px;border-radius:24px;margin-top:-12px}
+.memory-puzzle-replay:hover{background:#fbf0f6;color:#785477}
+.memory-puzzle-replay:focus-visible{outline:2px solid #be8aae;outline-offset:3px}
+.memory-puzzle-replay span{display:inline-block;font-size:20px;vertical-align:-1px;margin-left:6px}
+@keyframes puzzle-fit{from{transform:translate(var(--px),var(--py)) rotate(var(--angle))}to{transform:translate(0,0) rotate(0)}}
+@keyframes puzzle-words{from{opacity:0}to{opacity:1}}
+@media(max-width:600px){.memory-puzzle{padding:40px 0 28px}.memory-puzzle-art{width:120%;max-width:none;margin-left:-10%}.memory-puzzle-copy{font-size:20px}.memory-puzzle-note{font-size:15px}.memory-puzzle-replay{margin-top:16px}}
+@media(prefers-reduced-motion:reduce){.memory-puzzle-piece,.is-playing .memory-puzzle-piece{animation:none;transform:none;will-change:auto}.memory-puzzle-words,.is-playing .memory-puzzle-words{animation:none;opacity:1}}

@@ -4,6 +4,7 @@ import SkyWindows from './SkyWindows';
 import ScratchStamps from './ScratchStamps';
 import CabinetLetter from './CabinetLetter';
 import HolographicCards from './HolographicCards';
+import MemoryPuzzle from './MemoryPuzzle';
 import './base-travel.css';
 import './gallery-styles.css';
 
@@ -52,6 +53,7 @@ function Travel() {
       <header className="travel-top"><span>我们的旅行手记</span><button onClick={() => setView('closed')}>回到蜡烛</button></header>
       <h2 id="travel-timeline-title" ref={heading} tabIndex={-1} className="album-accessible-title">我们的旅行相册</h2>
       <SkyWindows />
+      <MemoryPuzzle />
       <ScratchStamps />
       <HolographicCards />
       <CabinetLetter />
