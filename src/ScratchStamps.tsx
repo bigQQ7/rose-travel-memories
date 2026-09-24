@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import './scratch-stamps.css';
 
 const stamps = [
-  { title: '把初夏寄给你', place: 'HANGZHOU', date: '05 / 2021', color: '#a8b77c', image: 'hangzhou-3.png', note: '第一次一起出发，连走过的普通街道都变得特别。以后再想起杭州，先想起的总是身边的你。' },
-  { title: '热闹里有我们', place: 'CHENGDU', date: '09 / 2021', color: '#c18b68', image: 'gallery-2-3.png', note: '把笑声留在街头，把快乐藏进合照。和你在一起，吃什么、去哪里，都能变成值得记很久的小事。' },
-  { title: '海风替我说', place: 'SUMMER MAIL', date: '06 / 2023', color: '#819da1', image: 'gallery-3-3.jpg', note: '想把那天的海风和日落一起寄给你。照片装不下的，是我们一路上的笑声，还有下次再出发的期待。' },
-  { title: '冬天也很温柔', place: 'WINTER POST', date: '02 / 2025', color: '#737766', image: 'gallery-5-4.jpg', note: '雪山很远，身边的你很近。愿我们以后还会一起看很多场雪，也一起把平常的日子过得亮晶晶。' }
+  { title: '把初夏寄给你', place: 'HANGZHOU', date: '05 / 2021', color: '#a8b77c', image: 'stamp-photo-1.png', note: '第一次一起出发，连走过的普通街道都变得特别。以后再想起杭州，先想起的总是身边的你。' },
+  { title: '热闹里有我们', place: 'CHENGDU', date: '09 / 2021', color: '#c18b68', image: 'stamp-photo-2.png', note: '把笑声留在街头，把快乐藏进合照。和你在一起，吃什么、去哪里，都能变成值得记很久的小事。' },
+  { title: '海风替我说', place: 'SUMMER MAIL', date: '06 / 2023', color: '#819da1', image: 'stamp-photo-3.png', note: '想把那天的海风和日落一起寄给你。照片装不下的，是我们一路上的笑声，还有下次再出发的期待。' },
+  { title: '冬天也很温柔', place: 'WINTER POST', date: '02 / 2025', color: '#737766', image: 'stamp-photo-4.png', note: '雪山很远，身边的你很近。愿我们以后还会一起看很多场雪，也一起把平常的日子过得亮晶晶。' }
 ];
 
 function ScratchLayer({ color, saved, done, onSave, onReveal }: { color: string; saved?: string; done: boolean; onSave: (s:string)=>void; onReveal: ()=>void }) {
