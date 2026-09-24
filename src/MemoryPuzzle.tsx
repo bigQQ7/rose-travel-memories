@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import './memory-puzzle.css';
 
 const memories = [
-  { color: '#f8d4df', lines: ['那些一起走过的路，', '慢慢拼成了我们的故事。'], note: '一路有你', x: -100, y: -70, angle: -7 },
-  { color: '#e2d7f5', lines: ['从第一次旅行开始，', '有了越来越多的目的地。'], note: '从杭州出发', x: -10, y: -100, angle: -4 },
-  { color: '#f5dbe9', lines: ['一起看过的雪，', '一直记得。'], note: '两次来到冬天', x: 120, y: -90, angle: 8 },
-  { color: '#f5c9df', lines: ['一张小小的创口贴，', '也藏着我们的快乐。'], note: '心电图的回忆', x: -140, y: 100, angle: 0 },
-  { color: '#d9cef2', lines: ['每次跨年，', '都想和你一起。'], note: '又是一年', x: 0, y: 100, angle: -6 },
-  { color: '#ecd7ef', lines: ['把这些小小的瞬间，', '一片一片，收藏起来。'], note: '属于我们的回忆', x: 135, y: 100, angle: 8 },
+  { color: '#F9DCF7', lines: ['那些一起走过的路，', '慢慢拼成了我们的故事。'], note: '一路有你', x: -100, y: -70, angle: -7 },
+  { color: '#FCCAFB', lines: ['从第一次旅行开始，', '有了越来越多的目的地。'], note: '从杭州出发', x: -10, y: -100, angle: -4 },
+  { color: '#DECAFE', lines: ['一起看过的雪，', '一直记得。'], note: '两次来到冬天', x: 120, y: -90, angle: 8 },
+  { color: '#FFEEB2', lines: ['一张小小的创口贴，', '也藏着我们的快乐。'], note: '心电图的回忆', x: -140, y: 100, angle: 0 },
+  { color: '#FEC7E0', lines: ['每次跨年，', '都想和你一起。'], note: '又是一年', x: 0, y: 100, angle: -6 },
+  { color: '#FFD3D3', lines: ['把这些小小的瞬间，', '一片一片，收藏起来。'], note: '属于我们的回忆', x: 135, y: 100, angle: 8 },
 ];
 
 // Opposite sides use the same curve in reverse, so the six pieces fit exactly.
@@ -27,20 +27,12 @@ function piece(index: number) {
 }
 
 export default function MemoryPuzzle() {
-  const section = useRef<HTMLElement>(null);
-  const [playing, setPlaying] = useState(false);
-  const [run, setRun] = useState(0);
-  useEffect(() => {
-    const observer = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) { setPlaying(true); observer.disconnect(); }
-    }, { threshold: .35 });
-    if (section.current) observer.observe(section.current);
-    return () => observer.disconnect();
-  }, []);
-  return <section ref={section} className="memory-puzzle" aria-label="六片拼图，拼起我们的回忆">
-    <svg key={run} className={playing ? 'memory-puzzle-art is-playing' : 'memory-puzzle-art'} viewBox="-165 -140 1230 800" role="img" aria-label="六块粉紫色拼图依次归位，拼成我们的回忆">
+  const [placed, setPlaced] = useState<number[]>([]);
+  const place = (index: number) => setPlaced(previous => previous.includes(index) ? previous : [...previous, index]);
+  return <section className="memory-puzzle" aria-label="六片拼图，拼起我们的回忆">
+    <svg className="memory-puzzle-art" viewBox="-165 -140 1230 800" role="group" aria-label="点击每块拼图，把回忆拼在一起">
       <g className="memory-puzzle-outline" aria-hidden="true">{memories.map((_, i) => <path key={i} d={piece(i)} />)}</g>
-      {memories.map((memory, i) => <g key={i} className="memory-puzzle-piece" style={{ '--px': `${memory.x}px`, '--py': `${memory.y}px`, '--angle': `${memory.angle}deg`, '--delay': `${i * 1.05 + .35}s`, transformOrigin: `${i % 3 * 300 + 150}px ${Math.floor(i / 3) * 250 + 125}px` } as React.CSSProperties}>
+      {memories.map((memory, i) => <g key={i} className={`memory-puzzle-piece${placed.includes(i) ? ' is-placed' : ''}`} role="button" tabIndex={0} aria-label={`拼合第${i + 1}块：${memory.note}`} aria-pressed={placed.includes(i)} onClick={() => place(i)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); place(i); } }} style={{ '--px': `${memory.x}px`, '--py': `${memory.y}px`, '--angle': `${memory.angle}deg`, '--delay': '0s', transformOrigin: `${i % 3 * 300 + 150}px ${Math.floor(i / 3) * 250 + 125}px` } as React.CSSProperties}>
         <path className="memory-puzzle-depth" d={piece(i)} fill={memory.color} transform="translate(0 7)" />
         <path d={piece(i)} fill={memory.color} />
         <g className="memory-puzzle-words" transform={`translate(${i % 3 * 300 + 48} ${Math.floor(i / 3) * 250 + 65})`}>
@@ -51,6 +43,6 @@ export default function MemoryPuzzle() {
         </g>
       </g>)}
     </svg>
-    <button type="button" className="memory-puzzle-replay" onClick={() => { setPlaying(true); setRun(value => value + 1); }} aria-label="重新播放拼图动画">再拼一次 <span aria-hidden="true">↻</span></button>
+    <button type="button" className="memory-puzzle-replay" onClick={() => setPlaced([])} aria-label="散开拼图，重新拼合">{placed.length ? '再拼一次' : '点击拼图，拼起回忆'} <span aria-hidden="true">↻</span></button>
   </section>;
 }
