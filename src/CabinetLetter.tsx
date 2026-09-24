@@ -64,7 +64,7 @@ export default function CabinetLetter(){
     return()=>{cancelled=true;observer.disconnect();dispose();action.current=()=>{};};
   },[retry]);
   return <section className="cabinet-ending" aria-labelledby="cabinet-title">
-    <div className="cabinet-heading"><p>最后，还有一封信。</p><h2 id="cabinet-title">有些话，想亲手交给你。</h2></div>
+    <div className="cabinet-heading"><p id="cabinet-title">最后，还有一封信。</p></div>
     <div ref={host} className="cabinet-scene" data-state={status} aria-label="装着一封信的三维柜子" />
     <div className="cabinet-action" aria-live="polite">{status==='loading'?<p>正在把小柜子搬过来…</p>:status==='error'?<button onClick={()=>{setStatus('loading');setRetry(v=>v+1);}}>重新加载柜子</button>:<button onClick={()=>action.current()} disabled={status==='shaking'||status==='ejecting'}>{status==='ready'?'轻轻点一下柜子':status==='shaking'?'好像有什么藏在里面…':status==='ejecting'?'是给你的信。':'拆开这封信'}</button>}</div>
     <dialog ref={letter} className="cabinet-letter-dialog" onCancel={e=>{e.preventDefault();e.stopPropagation();letter.current?.close();}} onClick={e=>{if(e.target===e.currentTarget)letter.current?.close();}} aria-labelledby="cabinet-letter-title">

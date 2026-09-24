@@ -61,8 +61,8 @@ export default function ScratchStamps(){
   const close=()=>{const prev=selected;setSelected(null);if(prev!==null)requestAnimationFrame(()=>buttons.current[prev]?.focus());};
   const reveal=()=>setRevealed(a=>a.map((v,i)=>i===selected?true:v));
   const s=selected===null?null:stamps[selected];
-  return <section className={`memory-post ${selected!==null?'has-open-stamp':''}`} aria-labelledby="memory-post-title">
-    <header><span className="post-eyebrow">LETTERS FROM OUR JOURNEY</span><h2 id="memory-post-title">寄给你的，沿途。</h2><p>选一枚邮票，刮开一段藏起来的回忆。</p></header>
+  return <section className={`memory-post ${selected!==null?'has-open-stamp':''}`} aria-label="邮票回忆">
+    <header><p>选一枚邮票，刮开一段藏起来的回忆。</p></header>
     <div className="stamp-collection">{stamps.map((s,i)=><button key={s.place} ref={el=>{buttons.current[i]=el;}} className="stamp-choice" aria-label={`打开邮票：${s.title}`} onClick={()=>{origin.current=buttons.current[i]!.getBoundingClientRect();setSelected(i);}} style={{'--stamp-color':s.color,'--stamp-angle':`${[-3,2,-2,3][i]}deg`} as React.CSSProperties}>
       <div className="stamp-paper"><div className={`stamp-art ${revealed[i]?'uncovered':''}`} style={{backgroundImage:`url(/assets/${revealed[i]?s.image:s.cover})`}}><span className="stamp-place">{s.place.split(' ').map((v,j)=><React.Fragment key={j}>{v}<br/></React.Fragment>)}</span><span className="stamp-date">{s.date}</span></div></div><span className="stamp-caption">{s.title}{revealed[i]?' · 已收藏':''}</span>
     </button>)}</div>

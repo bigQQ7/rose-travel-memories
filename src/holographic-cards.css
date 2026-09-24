@@ -13,6 +13,8 @@
 .holo-card:focus-visible .holo-lift{transform:translateY(-9px)}
 .holo-card.is-flipped .holo-shine{opacity:0}
 .holo-front-image{padding:0;border:0;background:#fff2f9;box-shadow:none}
+.holo-cards{padding-top:52px}
+.holo-hint{margin-top:0}
 
 .holo-cards{background:#fff}
 .holo-cards:before{display:block;background-image:radial-gradient(#eab6cd 1px,transparent 1px)}

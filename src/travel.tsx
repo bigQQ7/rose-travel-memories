@@ -54,7 +54,6 @@ function Travel() {
       <SkyWindows />
       <ScratchStamps />
       <HolographicCards />
-      <p className="travel-ending">下一程，也想和你一起。</p>
       <CabinetLetter />
     </section>}
   </dialog>;
