@@ -17,5 +17,3 @@
 /* Keep the stationary button transparent when the card lifts above it. */
 .travel-dialog .holo-card,.travel-dialog .holo-card:hover,.travel-dialog .holo-card:active,.travel-dialog .holo-card:focus{background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important}
 .holo-card::before,.holo-card::after{display:none!important}
-.card-question{position:absolute;left:25%;top:32%;width:50%;height:36%;display:flex;align-items:center;justify-content:center;padding:5%;box-sizing:border-box;font-family:"Kaiti SC",STKaiti,KaiTi,serif;font-size:clamp(18px,2.05vw,27px);font-weight:600;line-height:1.75;letter-spacing:.08em;color:#a44775;text-align:center;word-break:normal;overflow-wrap:anywhere;pointer-events:none}
-@media(max-width:760px){.card-question{font-size:clamp(15px,3.3vw,23px);line-height:1.65;letter-spacing:.03em;padding:2%}}
