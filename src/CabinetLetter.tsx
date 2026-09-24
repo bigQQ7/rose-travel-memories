@@ -18,9 +18,9 @@ export default function CabinetLetter(){
         scene.add(new T.HemisphereLight(0xfff8e6,0x727582,2.8));const sun=new T.DirectionalLight(0xffe8cb,3);sun.position.set(3,6,5);scene.add(sun);const fill=new T.DirectionalLight(0xd2dfff,1.5);fill.position.set(-4,3,-2);scene.add(fill);
         const pivot=new T.Group();scene.add(pivot);
         const envelope=new T.Group();scene.add(envelope);envelope.visible=false;
-        const paper=new T.Mesh(new T.BoxGeometry(1.05,.68,.045),new T.MeshStandardMaterial({color:0x9b211d,roughness:.85}));envelope.add(paper);
-        const flapShape=new T.Shape();flapShape.moveTo(-.525,.34);flapShape.lineTo(.525,.34);flapShape.lineTo(0,-.05);flapShape.closePath();const flap=new T.Mesh(new T.ShapeGeometry(flapShape),new T.MeshStandardMaterial({color:0xbb342a,side:T.DoubleSide}));flap.position.z=.028;envelope.add(flap);
-        const seal=new T.Mesh(new T.CylinderGeometry(.075,.075,.02,32),new T.MeshStandardMaterial({color:0x9c4846,roughness:.65}));seal.rotation.x=Math.PI/2;seal.position.set(0,-.05,.05);envelope.add(seal);
+        const paper=new T.Mesh(new T.BoxGeometry(1.05,.68,.045),new T.MeshStandardMaterial({color:0xd95b91,roughness:.85}));envelope.add(paper);
+        const flapShape=new T.Shape();flapShape.moveTo(-.525,.34);flapShape.lineTo(.525,.34);flapShape.lineTo(0,-.05);flapShape.closePath();const flap=new T.Mesh(new T.ShapeGeometry(flapShape),new T.MeshStandardMaterial({color:0xf18ab1,side:T.DoubleSide}));flap.position.z=.028;envelope.add(flap);
+        const seal=new T.Mesh(new T.CylinderGeometry(.075,.075,.02,32),new T.MeshStandardMaterial({color:0xb64d80,roughness:.65}));seal.rotation.x=Math.PI/2;seal.position.set(0,-.05,.05);envelope.add(seal);
         const shadowCanvas=document.createElement('canvas');shadowCanvas.width=128;shadowCanvas.height=128;const ctx=shadowCanvas.getContext('2d')!,gradient=ctx.createRadialGradient(64,64,6,64,64,60);gradient.addColorStop(0,'#453a3060');gradient.addColorStop(1,'#453a3000');ctx.fillStyle=gradient;ctx.fillRect(0,0,128,128);const shadow=new T.Mesh(new T.PlaneGeometry(4,3),new T.MeshBasicMaterial({map:new T.CanvasTexture(shadowCanvas),transparent:true,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=-.01;scene.add(shadow);
         let phase='loading',start=0,raf=0,visible=true,front=.65,baseRotation=0;
         const resize=()=>{const w=el.clientWidth,h=el.clientHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.position.set(w<600?3.6:4,2.8,w<600?8.3:6.7);camera.lookAt(0,1.35,0);camera.updateProjectionMatrix();};const ro=new ResizeObserver(resize);ro.observe(el);resize();
@@ -47,6 +47,17 @@ export default function CabinetLetter(){
         const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('/assets/letter-cabinet.glb');
         if(cancelled){gltf.scene.traverse((o:any)=>{o.geometry?.dispose();o.material?.dispose();});return;}
         const box=new T.Box3().setFromObject(gltf.scene),size=box.getSize(new T.Vector3()),center=box.getCenter(new T.Vector3());const scale=2.7/size.y;
+        gltf.scene.traverse((object:any)=>{
+          if(!object.isMesh)return;
+          for(const material of Array.isArray(object.material)?object.material:[object.material]){
+            material.onBeforeCompile=(shader:any)=>{
+              shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+                float originalLightness = max(max(diffuseColor.r, diffuseColor.g), diffuseColor.b);
+                diffuseColor.rgb = vec3(1.0, 0.47, 0.67) * originalLightness;`);
+            };
+            material.needsUpdate=true;
+          }
+        });
         gltf.scene.scale.setScalar(scale);gltf.scene.position.set(-center.x*scale,-box.min.y*scale,-center.z*scale);pivot.add(gltf.scene);front=size.z*scale/2;phase='ready';setStatus('ready');
       }catch(e){if(!cancelled){dispose();setStatus('error');console.error('Cabinet load failed',e);}}
     }
