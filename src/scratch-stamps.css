@@ -18,3 +18,4 @@
 .stamp-paper:before,.stamp-paper:after{background:radial-gradient(circle at 0 10px,#f5e3eb 4.5px,transparent 5px) 0 0/9px 20px repeat-y}
 .stamp-dialog{background:#f6e8ee56;color:#5b4555}.stamp-dialog::backdrop{background:#58465369}
 .stamp-dialog .stamp-close{background:#fff6fc!important;color:#674e6c;border-color:#ad8eaa66}
+.stamp-art:not(.uncovered) .stamp-place,.stamp-art:not(.uncovered) .stamp-date,.stamp-reveal-art:not(.uncovered) .stamp-place,.stamp-reveal-art:not(.uncovered) .stamp-date{display:none}
