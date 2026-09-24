@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import SkyWindows from './SkyWindows';
 import ScratchStamps from './ScratchStamps';
 import CabinetLetter from './CabinetLetter';
+import HolographicCards from './HolographicCards';
 import './base-travel.css';
 import './gallery-styles.css';
 
@@ -52,6 +53,7 @@ function Travel() {
       <h2 id="travel-timeline-title" ref={heading} tabIndex={-1} className="album-accessible-title">我们的旅行相册</h2>
       <SkyWindows />
       <ScratchStamps />
+      <HolographicCards />
       <p className="travel-ending">下一程，也想和你一起。</p>
       <CabinetLetter />
     </section>}
