@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import './memory-puzzle.css';
 
 const memories = [
-  { color: '#F9DCF7', lines: ['那些一起走过的路，', '慢慢拼成了我们的故事。'], note: '一路有你', x: -100, y: -70, angle: -7 },
-  { color: '#FCCAFB', lines: ['从第一次旅行开始，', '有了越来越多的目的地。'], note: '从杭州出发', x: -10, y: -100, angle: -4 },
-  { color: '#DECAFE', lines: ['一起看过的雪，', '一直记得。'], note: '两次来到冬天', x: 120, y: -90, angle: 8 },
-  { color: '#FFEEB2', lines: ['一张小小的创口贴，', '也藏着我们的快乐。'], note: '心电图的回忆', x: -140, y: 100, angle: 0 },
-  { color: '#FEC7E0', lines: ['每次跨年，', '都想和你一起。'], note: '又是一年', x: 0, y: 100, angle: -6 },
-  { color: '#FFD3D3', lines: ['把这些小小的瞬间，', '一片一片，收藏起来。'], note: '属于我们的回忆', x: 135, y: 100, angle: 8 },
+  { color: '#F9DCF7', prompt: '我们最常吃的东西', caption: '火锅肯定是第一名', sticker: './assets/puzzle-food-1.png', x: -100, y: -70, angle: -7 },
+  { color: '#FCCAFB', prompt: '一见钟情的东西', caption: '螺丝粉永远的神', sticker: './assets/puzzle-food-2.png', x: -10, y: -100, angle: -4 },
+  { color: '#DECAFE', prompt: '新疆人骨子里的基因', caption: '炒米粉我要中辣', sticker: './assets/puzzle-food-3.png', x: 120, y: -90, angle: 8 },
+  { color: '#FFEEB2', prompt: '心竟宠妃', caption: '麻油鱼还想吃', sticker: './assets/puzzle-food-4.png', x: -140, y: 100, angle: 0 },
+  { color: '#FEC7E0', prompt: '百搭伴侣', caption: '茶百道永远的神', sticker: './assets/puzzle-food-5.png', x: 0, y: 100, angle: -6 },
+  { color: '#FFD3D3', prompt: '超难吃的东西', caption: '油茶好难喝', sticker: './assets/puzzle-food-6.png', x: 135, y: 100, angle: 8 },
 ];
 
 // Opposite sides use the same curve in reverse, so the six pieces fit exactly.
@@ -32,14 +32,15 @@ export default function MemoryPuzzle() {
   return <section className="memory-puzzle" aria-label="六片拼图，拼起我们的回忆">
     <svg className="memory-puzzle-art" viewBox="-165 -140 1230 800" role="group" aria-label="点击每块拼图，把回忆拼在一起">
       <g className="memory-puzzle-outline" aria-hidden="true">{memories.map((_, i) => <path key={i} d={piece(i)} />)}</g>
-      {memories.map((memory, i) => <g key={i} className={`memory-puzzle-piece${placed.includes(i) ? ' is-placed' : ''}`} role="button" tabIndex={0} aria-label={`拼合第${i + 1}块：${memory.note}`} aria-pressed={placed.includes(i)} onClick={() => place(i)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); place(i); } }} style={{ '--px': `${memory.x}px`, '--py': `${memory.y}px`, '--angle': `${memory.angle}deg`, '--delay': '0s', transformOrigin: `${i % 3 * 300 + 150}px ${Math.floor(i / 3) * 250 + 125}px` } as React.CSSProperties}>
+      {memories.map((memory, i) => <g key={i} className={`memory-puzzle-piece${placed.includes(i) ? ' is-placed' : ''}`} role="button" tabIndex={0} aria-label={`拼合第${i + 1}块：${memory.prompt}`} aria-pressed={placed.includes(i)} onClick={() => place(i)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); place(i); } }} style={{ '--px': `${memory.x}px`, '--py': `${memory.y}px`, '--angle': `${memory.angle}deg`, '--delay': '0s', transformOrigin: `${i % 3 * 300 + 150}px ${Math.floor(i / 3) * 250 + 125}px` } as React.CSSProperties}>
         <path className="memory-puzzle-depth" d={piece(i)} fill={memory.color} transform="translate(0 7)" />
         <path d={piece(i)} fill={memory.color} />
-        <g className="memory-puzzle-words" transform={`translate(${i % 3 * 300 + 48} ${Math.floor(i / 3) * 250 + 65})`}>
-          <text className="memory-puzzle-quote" y="0">“</text>
-          <text className="memory-puzzle-copy" y="35">{memory.lines.map((line, n) => <tspan key={line} x="0" dy={n ? 28 : 0}>{line}</tspan>)}</text>
-          <text className="memory-puzzle-note" y="130">{memory.note}</text>
-          <text className="memory-puzzle-number" x="205" y="130" textAnchor="end">0{i + 1}</text>
+        <g transform={`translate(${i % 3 * 300} ${Math.floor(i / 3) * 250})`} pointerEvents="none">
+          <text className="memory-puzzle-prompt" x="150" y="130" textAnchor="middle">{memory.prompt}</text>
+          <g className="memory-puzzle-reveal">
+            <image className="memory-puzzle-sticker" href={memory.sticker} x="52" y="24" width="196" height="165" preserveAspectRatio="xMidYMid meet" />
+            <text className="memory-puzzle-caption" x="150" y="218" textAnchor="middle">{memory.caption}</text>
+          </g>
         </g>
       </g>)}
     </svg>

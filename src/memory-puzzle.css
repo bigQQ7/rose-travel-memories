@@ -21,3 +21,11 @@
 .memory-puzzle-piece:focus-visible>path:nth-child(2){stroke:#9a789a;stroke-width:3}
 .memory-puzzle-piece.is-placed{cursor:default}
 @media(prefers-reduced-motion:reduce){.memory-puzzle-piece{will-change:auto}.memory-puzzle-piece.is-placed{animation:none;transform:none}.is-placed .memory-puzzle-words{animation:none;opacity:1}}
+
+.memory-puzzle-prompt,.memory-puzzle-caption{fill:#654f68;font-family:'PingFang SC','Microsoft YaHei',sans-serif;font-size:20px;font-weight:500;letter-spacing:.5px}
+.memory-puzzle-reveal{opacity:0}
+.memory-puzzle-sticker{filter:drop-shadow(0 3px 2px #654f6824)}
+.is-placed .memory-puzzle-prompt{animation:puzzle-hide 0s linear 1.15s both}
+.is-placed .memory-puzzle-reveal{animation:puzzle-words 0s linear 1.15s both}
+@keyframes puzzle-hide{to{opacity:0}}
+@media(prefers-reduced-motion:reduce){.is-placed .memory-puzzle-prompt{animation:none;opacity:0}.is-placed .memory-puzzle-reveal{animation:none;opacity:1}}
