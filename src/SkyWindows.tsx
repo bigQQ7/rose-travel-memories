@@ -98,7 +98,6 @@ function WindowChoice({ item, index, shade, setShade, onOpen }: { item: Story; i
     onOpen(event.currentTarget);
   }}>
     <FlightWindow variant={index} shade={shade} />
-    <span className="flight-window-info"><small>0{index + 1} / 02 · {item.years}</small><strong>{item.title}</strong></span>
   </button>;
 }
 
