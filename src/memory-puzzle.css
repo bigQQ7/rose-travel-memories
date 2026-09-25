@@ -23,7 +23,8 @@
 .memory-puzzle-piece.is-placed{cursor:default}
 @media(prefers-reduced-motion:reduce){.memory-puzzle-piece{will-change:auto}.memory-puzzle-piece.is-placed{animation:none;transform:none}.is-placed .memory-puzzle-words{animation:none;opacity:1}}
 
-.memory-puzzle-prompt,.memory-puzzle-caption{fill:#654f68;font-family:'Alimama FangYuanTi VF','PingFang SC','Microsoft YaHei',sans-serif;font-size:20px;font-weight:600;letter-spacing:.5px}
+.memory-puzzle-prompt,.memory-puzzle-caption{fill:#654f68;font-family:'PingFang SC','Microsoft YaHei',sans-serif;font-size:20px;font-weight:500;letter-spacing:.5px}
+.memory-puzzle-prompt{font-family:'Alimama FangYuanTi VF','PingFang SC',sans-serif;font-weight:600}
 .memory-puzzle-reveal{opacity:0}
 .memory-puzzle-sticker{filter:drop-shadow(0 3px 2px #654f6824);transform:translateY(-24px)}
 .memory-puzzle-caption{transform:translateY(-24px)}
