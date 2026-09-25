@@ -22,3 +22,9 @@
 @keyframes boarding-depart{to{opacity:0;transform:translateY(-25px)}}
 @media(max-width:700px){.boarding-workspace{height:330px}.boarding-pass{width:310px;height:166px;margin-left:-155px;top:20px}.boarding-pass-main{padding:9px}.boarding-brand{font-size:4px}.boarding-passenger strong{font-size:12px}.boarding-route{left:115px;top:48px;gap:4px}.boarding-route strong{font-size:12px}.boarding-route span{font-size:2.6px}.boarding-details{margin-top:12px;padding:6px 4px}.boarding-message{margin-top:5px}.boarding-barcode{height:9px;margin-top:5px}.boarding-stub{padding:10px 7px;gap:3px}.boarding-stub>span{margin-bottom:5px;font-size:3px}.boarding-reader{width:310px;margin-left:-155px;top:225px;height:100px}.reader-top{height:17px}.reader-front{height:58px}.reader-display{height:39px;font-size:13px;top:4px}.reader-light{top:22px;right:6px}.boarding-instruction{font-size:12px;max-width:310px}}
 @media(prefers-reduced-motion:reduce){.boarding-pass{transition:none}.gate-accepted{animation-duration:.01s;animation-delay:0s}}
+.boarding-reader{border:0;background:none;box-shadow:none}
+.reader-model{position:absolute;left:-7%;top:-25px;width:114%;height:155px;pointer-events:none}
+.reader-model canvas{display:block;width:100%;height:100%}
+.reader-fallback{position:absolute;inset:0;border:1px solid #a7a08a;border-radius:12px 12px 8px 8px;background:linear-gradient(100deg,#a6a18a,#ddd4b6 5%,#c4bca0 95%,#a49b80);box-shadow:0 3px 2px #827c6670}
+.reader-status-text{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(max-width:700px){.reader-model{top:-22px;height:130px}}

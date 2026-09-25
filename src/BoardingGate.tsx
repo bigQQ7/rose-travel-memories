@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './boarding-gate.css';
+import BoardingReader from './BoardingReader';
 
 type Status = 'ready' | 'reading' | 'error' | 'accepted';
 export default function BoardingGate({ onBoard }: { onBoard: () => void }) {
@@ -67,8 +68,7 @@ export default function BoardingGate({ onBoard }: { onBoard: () => void }) {
         <div className="boarding-stub"><span>✈ OUR JOURNEY</span><small>FLIGHT</small><strong>LOVE 02</strong><small>PASSENGERS</small><b>我们俩</b><small>SEAT</small><strong>01A / 01B</strong><div>ONE WAY</div></div>
       </button>
       <div className="boarding-reader" ref={reader}>
-        <div className="reader-top"><i /><i /></div><div className="reader-slot" />
-        <div className="reader-front"><div className="reader-display" role="status" aria-live="polite">{{ ready: 'READY', reading: 'READING', error: 'TRY AGAIN', accepted: 'WELCOME' }[status]}</div><span className="reader-light" /></div>
+        <BoardingReader status={status}/>
       </div>
     </div>
     <p className="boarding-instruction">{status === 'accepted' ? '登机成功，欢迎来到我们的旅程' : status === 'error' ? '把底部条码对准卡槽，再横向划过一次' : '拖动登机牌，将底部条码横向划过读卡器'}</p>

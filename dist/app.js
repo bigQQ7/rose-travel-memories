@@ -45,10 +45,11 @@ function startWishAudio(){
  wishSoundCycle++;wishAudioPhase='voice';wishVoice.src=wishVoiceSource;wishVoice.volume=.45;wishVoice.currentTime=0;playWishAudio();
 }
 wishAudioButton.onclick=playWishAudio;
-wishVoice.addEventListener('ended',()=>{
- if(wishAudioPhase!=='voice'||box.dataset.phase==='awaiting')return;
+function startWishSong(){
+ if(wishAudioPhase==='song')return;
+ wishSoundCycle++;wishVoice.pause();
  wishAudioPhase='song';wishVoice.src=wishSongSource;wishVoice.volume=.45;playWishAudio();
-});
+}
 const pointer={x:0,y:0,active:false,down:false,touch:false};
 const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2(),pointerPlane=new THREE.Plane(),viewDirection=new THREE.Vector3();
 const targetHint=document.querySelector('#igniteTarget'),instruction=document.querySelector('#instruction');
@@ -160,6 +161,7 @@ async function listenForBreath(){
 }
 function extinguish(){
  if(extinguishedAt!==null)return;travelStart.hidden=false;travelTimer=setTimeout(()=>window.dispatchEvent(new Event('travel:open')),1200);extinguishedAt=performance.now();stopMicrophone();box.dataset.phase='blown';ritualTitle.textContent='蜡烛已熄灭';ritualStatus.textContent='愿你的心愿慢慢实现。';wishDone.hidden=true;manualBlow.hidden=true;instruction.textContent='蜡烛已熄灭';document.querySelector('#replay').disabled=false;
+ startWishSong();
 }
 function sampleBreath(now){
  if(!analyser||box.dataset.phase!=='listening')return;
