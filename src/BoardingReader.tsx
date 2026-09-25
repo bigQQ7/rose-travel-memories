@@ -36,10 +36,10 @@ export function createBoardingReaderModel(T: any) {
   part('lower-housing',8,1.7,1.1,.17,0,-.2,0,materials.shell);
   part('rear-shell',7.94,.65,.3,.12,0,.54,-.4,materials.shell);
   part('upper-rounded-rail',8,.31,1.15,.14,0,.94,0,materials.edge);
-  part('slot-interior',7.5,.13,.035,.025,0,.719,.1,materials.recess);
-  part('slot-floor',7.5,.035,.61,.013,0,.657,.26,materials.dark);
-  part('slot-left-end',.2,.18,.86,.045,-3.86,.72,-.03,materials.shell);
-  part('slot-right-end',.2,.18,.86,.045,3.86,.72,-.03,materials.shell);
+  const slotInterior=part('top-slot-interior',7.5,.13,.035,.025,0,1.055,0,materials.recess);slotInterior.rotation.x=-Math.PI/2;
+  const slotFloor=part('top-slot-floor',7.5,.035,.61,.013,0,1.025,0,materials.dark);slotFloor.rotation.x=-Math.PI/2;
+  const slotLeft=part('top-slot-left-end',.2,.18,.86,.045,-3.86,1.035,0,materials.shell);slotLeft.rotation.x=-Math.PI/2;
+  const slotRight=part('top-slot-right-end',.2,.18,.86,.045,3.86,1.035,0,materials.shell);slotRight.rotation.x=-Math.PI/2;
   part('front-recess-border',7.49,1.39,.04,.07,0,-.2,.56,materials.edge);
   part('front-panel',7.43,1.33,.045,.07,0,-.22,.595,materials.face);
   part('display-bezel',3.58,.99,.14,.08,-.15,-.15,.675,materials.dark);
