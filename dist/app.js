@@ -26,24 +26,29 @@ let wishAt=null,extinguishedAt=null,micEpoch=0,micStream=null,audioContext=null,
 const ritual=document.querySelector('#ritual'),ritualTitle=document.querySelector('#ritualTitle'),ritualStatus=document.querySelector('#ritualStatus'),wishDone=document.querySelector('#wishDone'),manualBlow=document.querySelector('#manualBlow'),breathMeter=document.querySelector('#breathMeter');
 const wishVoice=new Audio('./assets/wish-voice.m4a');
 wishVoice.preload='auto';
-// Set this to the supplied song file when it is available.
-const wishSongSource='';
-const wishSong=wishSongSource ? new Audio(wishSongSource) : null;
+const wishVoiceSource='./assets/wish-voice.m4a';
+const wishSongSource='./assets/red-high-heels.m4a';
+let wishAudioPhase='voice';
 let wishSoundCycle=0;
 const wishAudioButton=document.createElement('button');
 wishAudioButton.type='button';wishAudioButton.textContent='播放许愿录音';wishAudioButton.hidden=true;ritual.appendChild(wishAudioButton);
 function stopWishAudio(){
- wishSoundCycle++;wishVoice.pause();wishVoice.currentTime=0;
- if(wishSong){wishSong.pause();wishSong.currentTime=0;}
+ wishSoundCycle++;wishVoice.pause();wishVoice.src=wishVoiceSource;wishVoice.currentTime=0;wishAudioPhase='voice';
  wishAudioButton.hidden=true;
 }
-function startWishAudio(){
- const cycle=++wishSoundCycle;
- wishVoice.currentTime=0;
+function playWishAudio(){
+ const cycle=wishSoundCycle;
+ wishAudioButton.textContent=wishAudioPhase==='song'?'播放歌曲':'播放许愿录音';
  wishVoice.play().then(()=>{if(cycle===wishSoundCycle)wishAudioButton.hidden=true;}).catch(()=>{if(cycle===wishSoundCycle)wishAudioButton.hidden=false;});
 }
-wishAudioButton.onclick=startWishAudio;
-wishVoice.addEventListener('ended',()=>{if(wishSong&&wishSoundCycle&&box.dataset.phase!=='awaiting')wishSong.play().catch(()=>{});});
+function startWishAudio(){
+ wishSoundCycle++;wishAudioPhase='voice';wishVoice.src=wishVoiceSource;wishVoice.volume=.45;wishVoice.currentTime=0;playWishAudio();
+}
+wishAudioButton.onclick=playWishAudio;
+wishVoice.addEventListener('ended',()=>{
+ if(wishAudioPhase!=='voice'||box.dataset.phase==='awaiting')return;
+ wishAudioPhase='song';wishVoice.src=wishSongSource;wishVoice.volume=.45;playWishAudio();
+});
 const pointer={x:0,y:0,active:false,down:false,touch:false};
 const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2(),pointerPlane=new THREE.Plane(),viewDirection=new THREE.Vector3();
 const targetHint=document.querySelector('#igniteTarget'),instruction=document.querySelector('#instruction');
