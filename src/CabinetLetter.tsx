@@ -71,7 +71,7 @@ export default function CabinetLetter(){
       <button aria-label="收起信" className="cabinet-letter-close" onClick={()=>letter.current?.close()}>×</button>
       <div className="opened-envelope">
         <div className="envelope-back" aria-hidden="true"/><div className="envelope-open-flap" aria-hidden="true"/>
-        <article className="cabinet-letter-paper"><span className="letter-postmark" aria-hidden="true">♡<small>WITH LOVE</small></span><span className="letter-from">From: 我<br/>To: 亲爱的你</span><p className="letter-dateline">写给一起走过这些路的你</p><h3 id="cabinet-letter-title">亲爱的你：</h3><p>翻到这里，我们又把那些日子走了一遍。原来最舍不得的，不只是某一座城市、某一次日落，而是每一张照片里，都有我们。</p><p>谢谢你陪我出发，也陪我把普通的小事变成了回忆。以后还想和你一起看海、看雪，走进没去过的街道，也在熟悉的地方慢慢散步。</p><p>这一页写到这里，下一程，我们一起。</p><p className="letter-signoff">把往后的好天气，也留给你。<br/>♡</p></article>
+        <article className="cabinet-letter-paper"><span className="letter-postmark" aria-hidden="true">♡<small>WITH LOVE</small></span><span className="letter-from">From: 我<br/>To: 老婆婆</span><p className="letter-dateline">写给26岁的你</p><h3 id="cabinet-letter-title">老婆婆：</h3><p>祝你26岁快乐！没想到我们这么快就已经真正地成为社会人了，也终于可以自己去赚钱啦！</p><p>希望这个拍立得能记录你的美好时刻！</p><p className="letter-signoff">爱你<br/>2026.9.25</p></article>
         <div className="envelope-front" aria-hidden="true"><div className="envelope-left"/><div className="envelope-right"/><div className="envelope-bottom"/><div className="letter-photo-stamp"><img src="/assets/hangzhou-3.png" alt=""/></div></div>
       </div>
     </dialog>
