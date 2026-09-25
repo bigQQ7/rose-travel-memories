@@ -24,6 +24,26 @@ const travelStart=document.querySelector("#travelStart");
 travelStart.onclick=()=>window.dispatchEvent(new Event("travel:open"));
 let wishAt=null,extinguishedAt=null,micEpoch=0,micStream=null,audioContext=null,audioSource=null,analyser=null,wave=null,frequency=null,micStarted=0,lastAudioTime=0,noiseFloor=.001,breathDuration=0,breathGap=0,audioSink=null,audioTimer=null,calibration=[],lastSoundAt=0;
 const ritual=document.querySelector('#ritual'),ritualTitle=document.querySelector('#ritualTitle'),ritualStatus=document.querySelector('#ritualStatus'),wishDone=document.querySelector('#wishDone'),manualBlow=document.querySelector('#manualBlow'),breathMeter=document.querySelector('#breathMeter');
+const wishVoice=new Audio('./assets/wish-voice.m4a');
+wishVoice.preload='auto';
+// Set this to the supplied song file when it is available.
+const wishSongSource='';
+const wishSong=wishSongSource ? new Audio(wishSongSource) : null;
+let wishSoundCycle=0;
+const wishAudioButton=document.createElement('button');
+wishAudioButton.type='button';wishAudioButton.textContent='播放许愿录音';wishAudioButton.hidden=true;ritual.appendChild(wishAudioButton);
+function stopWishAudio(){
+ wishSoundCycle++;wishVoice.pause();wishVoice.currentTime=0;
+ if(wishSong){wishSong.pause();wishSong.currentTime=0;}
+ wishAudioButton.hidden=true;
+}
+function startWishAudio(){
+ const cycle=++wishSoundCycle;
+ wishVoice.currentTime=0;
+ wishVoice.play().then(()=>{if(cycle===wishSoundCycle)wishAudioButton.hidden=true;}).catch(()=>{if(cycle===wishSoundCycle)wishAudioButton.hidden=false;});
+}
+wishAudioButton.onclick=startWishAudio;
+wishVoice.addEventListener('ended',()=>{if(wishSong&&wishSoundCycle&&box.dataset.phase!=='awaiting')wishSong.play().catch(()=>{});});
 const pointer={x:0,y:0,active:false,down:false,touch:false};
 const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2(),pointerPlane=new THREE.Plane(),viewDirection=new THREE.Vector3();
 const targetHint=document.querySelector('#igniteTarget'),instruction=document.querySelector('#instruction');
@@ -91,7 +111,7 @@ function setupEffect(){
  replay();
 }
 function replay(){
- if(!model)return;clearTimeout(travelTimer);travelStart.hidden=true;window.dispatchEvent(new Event("travel:reset"));stopMicrophone();wishAt=null;extinguishedAt=null;ritual.hidden=true;manualBlow.hidden=true;breathMeter.hidden=true;candleFire.scale.setScalar(1);ignitionAt=null;hoverSince=null;pointer.active=false;pointer.down=false;pointer.touch=false;
+ if(!model)return;clearTimeout(travelTimer);travelStart.hidden=true;window.dispatchEvent(new Event("travel:reset"));stopMicrophone();stopWishAudio();wishAt=null;extinguishedAt=null;ritual.hidden=true;manualBlow.hidden=true;breathMeter.hidden=true;candleFire.scale.setScalar(1);ignitionAt=null;hoverSince=null;pointer.active=false;pointer.down=false;pointer.touch=false;
  controls.autoRotate=false;document.querySelector('#rotate').setAttribute('aria-pressed','false');
  controls.enableRotate=false;controls.touches.ONE=THREE.TOUCH.PAN;
  document.querySelector('#replay').disabled=true;box.dataset.phase='awaiting';
@@ -110,6 +130,7 @@ function stopMicrophone(){
 function beginWish(now){
  wishAt=now;box.dataset.phase='wishing';controls.autoRotate=false;document.querySelector('#rotate').setAttribute('aria-pressed','false');
  ritual.hidden=false;ritualTitle.textContent='闭个眼睛，许个愿吧';ritualStatus.textContent='';wishDone.textContent='许好了';wishDone.hidden=false;wishDone.disabled=false;manualBlow.hidden=true;
+ startWishAudio();
  document.querySelector('#replay').disabled=false;instruction.textContent='闭个眼睛，许个愿吧';
 }
 function microphoneError(message){
@@ -151,7 +172,7 @@ function sampleBreath(now){
 }
 
 wishDone.onclick=listenForBreath;manualBlow.onclick=extinguish;
-window.addEventListener('pagehide',stopMicrophone);
+window.addEventListener('pagehide',()=>{stopMicrophone();stopWishAudio();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&['requesting','listening'].includes(box.dataset.phase))microphoneError('检测已暂停，返回后点击重试麦克风。');});
 function renderStars(time,reveal){
  const w=box.clientWidth,h=box.clientHeight;skyContext.clearRect(0,0,w,h);if(reveal<=0)return;
