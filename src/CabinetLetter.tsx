@@ -10,7 +10,7 @@ export default function CabinetLetter(){
     const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){observer.disconnect();init();}},{rootMargin:'350px'});observer.observe(el);
     async function init(){
       try{
-        const three='three',loaderPath='three/addons/loaders/GLTFLoader.js',decoderPath='/assets/meshopt_decoder.module.js';
+        const three='three',loaderPath='three/addons/loaders/GLTFLoader.js',decoderPath='./assets/meshopt_decoder.module.js';
         const [T,{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import(three),import(loaderPath),import(decoderPath)]);
         if(cancelled)return;
         const renderer=new T.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.3;el.appendChild(renderer.domElement);
@@ -44,7 +44,7 @@ export default function CabinetLetter(){
           renderer.render(scene,camera);
         }raf=requestAnimationFrame(animate);
         dispose=()=>{cancelAnimationFrame(raf);ro.disconnect();io.disconnect();renderer.domElement.removeEventListener('click',click);scene.traverse((o:any)=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material]){for(const v of Object.values(m) as any[])if(v?.isTexture)v.dispose();m.dispose();}}});renderer.dispose();renderer.domElement.remove();};
-        const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('/assets/letter-cabinet.glb');
+        const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('./assets/letter-cabinet.glb');
         if(cancelled){gltf.scene.traverse((o:any)=>{o.geometry?.dispose();o.material?.dispose();});return;}
         const box=new T.Box3().setFromObject(gltf.scene),size=box.getSize(new T.Vector3()),center=box.getCenter(new T.Vector3());const scale=2.7/size.y;
         gltf.scene.traverse((object:any)=>{
@@ -72,7 +72,7 @@ export default function CabinetLetter(){
       <div className="opened-envelope">
         <div className="envelope-back" aria-hidden="true"/><div className="envelope-open-flap" aria-hidden="true"/>
         <article className="cabinet-letter-paper"><span className="letter-postmark" aria-hidden="true">♡<small>WITH LOVE</small></span><span className="letter-from">From: 我<br/>To: 老婆婆</span><p className="letter-dateline">写给26岁的你</p><h3 id="cabinet-letter-title">老婆婆：</h3><p>祝你26岁快乐！没想到我们这么快就已经真正地成为社会人了，也终于可以自己去赚钱啦！</p><p>希望这个拍立得能记录你的美好时刻！</p><p className="letter-signoff">爱你<br/>2026.9.25</p></article>
-        <div className="envelope-front" aria-hidden="true"><div className="envelope-left"/><div className="envelope-right"/><div className="envelope-bottom"/><div className="letter-photo-stamp"><img src="/assets/hangzhou-3.png" alt=""/></div></div>
+        <div className="envelope-front" aria-hidden="true"><div className="envelope-left"/><div className="envelope-right"/><div className="envelope-bottom"/><div className="letter-photo-stamp"><img src="./assets/hangzhou-3.png" alt=""/></div></div>
       </div>
     </dialog>
   </section>;

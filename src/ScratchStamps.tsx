@@ -26,7 +26,7 @@ function ScratchLayer({ color, cover, saved, done, onSave, onReveal }: { color: 
       const width=img.width*scale,height=img.height*scale;
       ctx.drawImage(img,(600-width)/2,(760-height)/2,width,height);
     };
-    img.src=saved||`/assets/${cover}`;
+    img.src=saved||`./assets/${cover}`;
     return ()=>{img.onload=null;};
   }, [cover, saved, done, color]);
   function erase(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -64,11 +64,11 @@ export default function ScratchStamps(){
   return <section className={`memory-post ${selected!==null?'has-open-stamp':''}`} aria-label="邮票回忆">
     <header><p>选一枚邮票，刮开一段藏起来的回忆。</p></header>
     <div className="stamp-collection">{stamps.map((s,i)=><button key={s.place} ref={el=>{buttons.current[i]=el;}} className="stamp-choice" aria-label={`打开邮票：${s.title}`} onClick={()=>{origin.current=buttons.current[i]!.getBoundingClientRect();setSelected(i);}} style={{'--stamp-color':s.color,'--stamp-angle':`${[-3,2,-2,3][i]}deg`} as React.CSSProperties}>
-      <div className="stamp-paper"><div className={`stamp-art ${revealed[i]?'uncovered':''}`} style={{backgroundImage:`url(/assets/${revealed[i]?s.image:s.cover})`}}><span className="stamp-place">{s.place.split(' ').map((v,j)=><React.Fragment key={j}>{v}<br/></React.Fragment>)}</span><span className="stamp-date">{s.date}</span></div></div><span className="stamp-caption">{s.title}{revealed[i]?' · 已收藏':''}</span>
+      <div className="stamp-paper"><div className={`stamp-art ${revealed[i]?'uncovered':''}`} style={{backgroundImage:`url(./assets/${revealed[i]?s.image:s.cover})`}}><span className="stamp-place">{s.place.split(' ').map((v,j)=><React.Fragment key={j}>{v}<br/></React.Fragment>)}</span><span className="stamp-date">{s.date}</span></div></div><span className="stamp-caption">{s.title}{revealed[i]?' · 已收藏':''}</span>
     </button>)}</div>
     <footer className="post-footnote">把风景留在邮票上，把你留在每一程里。</footer>
     <dialog ref={dialog} className="stamp-dialog" aria-label={s?.title} onCancel={e=>{e.preventDefault();e.stopPropagation();close();}} onClick={e=>{if(e.target===e.currentTarget)close();}}>
-      {s&&selected!==null&&<div className="stamp-focus"><button className="stamp-close" onClick={close} aria-label="收起邮票">×</button><div className="stamp-paper stamp-large" ref={paper} style={{'--stamp-color':s.color} as React.CSSProperties}><div className={`stamp-reveal-art ${revealed[selected]?'uncovered':''}`}><img src={`/assets/${s.image}`} alt={s.title}/><ScratchLayer key={selected} color={s.color} cover={s.cover} saved={saved.current[selected]} done={revealed[selected]} onSave={v=>{saved.current[selected]=v;}} onReveal={reveal}/><span className="stamp-place">{s.place}</span><span className="stamp-date">{s.date}</span></div></div>
+      {s&&selected!==null&&<div className="stamp-focus"><button className="stamp-close" onClick={close} aria-label="收起邮票">×</button><div className="stamp-paper stamp-large" ref={paper} style={{'--stamp-color':s.color} as React.CSSProperties}><div className={`stamp-reveal-art ${revealed[selected]?'uncovered':''}`}><img src={`./assets/${s.image}`} alt={s.title}/><ScratchLayer key={selected} color={s.color} cover={s.cover} saved={saved.current[selected]} done={revealed[selected]} onSave={v=>{saved.current[selected]=v;}} onReveal={reveal}/><span className="stamp-place">{s.place}</span><span className="stamp-date">{s.date}</span></div></div>
         <div className="stamp-message" aria-live="polite"><h3>{s.title}</h3><p>{revealed[selected]?s.note:'用鼠标或手指轻轻刮开，看看这次寄来了什么。'}</p><button className="stamp-reveal-button" onClick={revealed[selected]?close:reveal}>{revealed[selected]?'收好这枚邮票':'直接揭晓'}</button></div>
       </div>}
     </dialog>
